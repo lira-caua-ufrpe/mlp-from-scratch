@@ -119,7 +119,14 @@ class ComputationalGraph:
     def build_mlp(self, layer_sizes: List[int], activations: List[str],
                   weight_init: str = "xavier") -> None:
         """Build complete MLP from layer specification."""
-        for i, (size, act) in enumerate(zip(layer_sizes, activations)):
+        if len(activations) != len(layer_sizes) - 1:
+            raise ValueError(f"Expected {len(layer_sizes) - 1} activations, got {len(activations)}")
+        
+        for i, size in enumerate(layer_sizes):
+            if i == 0:
+                act = "linear"
+            else:
+                act = activations[i - 1]
             is_input = (i == 0)
             is_output = (i == len(layer_sizes) - 1)
             self.add_layer(size, activation=act, is_input=is_input, is_output=is_output)

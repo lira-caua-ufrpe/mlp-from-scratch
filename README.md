@@ -1,153 +1,230 @@
-# MLP from Scratch - Advanced AI Topics
+# MLP Graph Viewer - Rede Neural como Grafo Explícito
 
-Implementation of a Multi-Layer Perceptron (MLP) from scratch using a computational graph structure, with real-time visualization of feed-forward and backpropagation.
+Implementação didática de MLP (Multi-Layer Perceptron) representada como **grafo explícito** de neurônios (nós) e conexões (arestas), com interface gráfica interativa PyQt6.
 
-## Features
+Baseado na estrutura didática do professor + identidade própria (Streamlit, docs, GitFlow, testes).
 
-- **MLP from Scratch**: No PyTorch/TensorFlow - pure NumPy implementation
-- **Graph-Based Architecture**: Neurons as nodes, weights as edges in a computational graph
-- **Feed-Forward & Backpropagation**: Full implementation with automatic differentiation
-- **Heart Disease Dataset**: UCI Cleveland dataset (80/20 train/test split)
-- **Real-Time Visualization**: Live graph with weight updates, training curves, weight distributions
-- **GitFlow Workflow**: Proper version control with feature branches
-- **Modular Design**: Clean package structure for extensibility
+---
 
-## Project Structure
+## 🎯 Objetivos Didáticos
+
+- **Visualizar a rede como grafo**: camadas, neurônios, conexões, pesos, bias
+- **Entender conexões entre camadas adjacentes**: geração automática fully-connected
+- **Modificação dinâmica da arquitetura**: add/remove camadas e neurônios em tempo real
+- **Código autoexplicativo**: nomes claros sem comentários extensos
+- **Step-by-step forward**: acompanhar propagação neurônio a neurônio
+- **Visualização de gradientes**: cores verde/magenta nas arestas após train step
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```
 workspace/
-├── src/
-│   ├── mlp/                 # Core MLP implementation
-│   │   ├── graph.py         # Computational graph (nodes, edges)
-│   │   ├── mlp.py           # Main MLP class
-│   │   └── __init__.py
-│   ├── data/                # Data loading & preprocessing
-│   │   ├── loader.py        # Heart Disease & Diabetes loaders
-│   │   └── __init__.py
-│   ├── visualization/       # Real-time visualization
-│   │   ├── dashboard.py     # Graph & metrics dashboards
-│   │   └── __init__.py
-│   ├── utils/               # Utilities
-│   └── __init__.py
-├── scripts/
-│   └── train.py             # Training harness
-├── tests/                   # Unit tests
-├── docs/                    # Documentation
-├── outputs/                 # Generated visualizations & models
-├── requirements.txt
-├── .gitignore
-└── README.md
+├── 🎯 Core do Professor (PyQt6 + classes puras Python)
+│   ├── neuron.py          # Neuron (id, bias, input_sum, output, delta)
+│   ├── connection.py      # Connection (source, target, weight, gradient)
+│   ├── layer.py           # Layer (neurons[], add/remove neuron)
+│   ├── network.py         # Network (forward, backprop, treino, arquitetura dinâmica)
+│   ├── graph_utils.py     # Posições, cores, espessuras para visualização
+│   ├── qt_viewer.py       # PyQt6 GUI completa (grafo + controles + treino)
+│   ├── loader.py          # CSV Loader (última coluna = target)
+│   ├── main.py            # Exemplo mínimo não-gráfico
+│   └── rsc/
+│       ├── heart.csv      # Heart Disease (UCI Cleveland, 302 samples, 13 features)
+│       └── diabetes.csv   # Diabetes 130-US (101k samples, 39 features, processado)
+│
+├── ✨ Nossa Identidade (extras)
+│   ├── app.py             # Streamlit Web App (demo alternativa web)
+│   ├── src/               # Versão NumPy/vetorizada para comparação
+│   ├── scripts/train.py   # ExperimentHarness (configuração via dataclass)
+│   ├── docs/              # Documentação completa (arquitetura, API, guia)
+│   ├── tests/             # Testes unitários
+│   ├── .github/workflows/ # CI/CD (GitHub Actions)
+│   ├── requirements.txt   # Dependências
+│   └── README.md          # Este arquivo
 ```
 
-## Installation
+---
 
+## 🚀 Como Executar
+
+### 1. Interface Gráfica PyQt6 (Principal)
 ```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-.venv\Scripts\activate     # Windows
-
-# Install dependencies
 pip install -r requirements.txt
+python qt_viewer.py
 ```
 
-## Quick Start
+**Funcionalidades da GUI:**
+- **Visualização**: Grafo com zoom (scroll), pan (arraste), highlight (clique)
+- **Arquitetura**: Adicionar/remover camadas ocultas e neurônios
+- **Entrada**: Valores manuais ou navegação pelo dataset
+- **Forward**: Completo ou passo-a-passo (neurônio a neurônio)
+- **Auto-play**: Animação automática do forward
+- **Treino**: Train Step (1 sample), Train Época (dataset todo), Learning Rate
+- **Gradientes**: Flash verde/magenta nas arestas por 1.2s após train step
+- **Loss History**: Janela com últimos 200 valores de loss
 
+### 2. Exemplo Mínimo (Terminal)
 ```bash
-# Run default Heart Disease experiment
-python scripts/train.py
+python main.py
+```
+Saída esperada:
+```
+dados carregados: features=13 linhas=302
+rede criada: layers: 13, 1 | connections: 13 | activation: sigmoid
+época 1: loss=0.8711 acc=37.29%
+teste: acurácia=40/60 = 66.67%
 ```
 
-Or programmatically:
+### 3. Streamlit Web App (Nossa Identidade)
+```bash
+streamlit run app.py
+```
+Interface web com abas: Dados → Arquitetura → Treino (AO VIVO) → Resultados → Inferência
 
+---
+
+## 🎮 Controles da Interface PyQt6
+
+| Área | Controles |
+|------|-----------|
+| **Dataset** | Carregar heart.csv / diabetes.csv / CSV personalizado |
+| **Arquitetura** | Camadas ocultas (0-5), neurônios/camada (1-64), ativação (sigmoid/relu/identity) |
+| **Entrada Manual** | Inputs separados por vírgula, Forward completo, Passo a passo, Auto-play |
+| **Navegação** | Próximo/Anterior sample, Fast Forward (teste completo) |
+| **Treino** | Learning Rate, Train Step, Train Época (1-100), Parar, Ver Loss |
+| **Visualização** | Mostrar pesos, bias, nomes das features |
+
+---
+
+## 🧠 Conceitos Implementados
+
+### Neuron (neuron.py)
 ```python
-from scripts.train import ExperimentHarness, ExperimentConfig
-
-config = ExperimentConfig(
-    layer_sizes=[13, 64, 32, 1],
-    activations=["relu", "relu", "sigmoid"],
-    epochs=200,
-    batch_size=32,
-    learning_rate=0.01
-)
-
-harness = ExperimentHarness(config)
-results = harness.run_full_experiment()
+@dataclass
+class Neuron:
+    bias: float
+    input_sum: float      # soma ponderada + bias
+    output: float         # após ativação
+    delta: float          # gradiente local (backprop)
+    neuron_id: str        # UUID único
+    layer_index: int      # índice da camada
+    position_in_layer: int
 ```
 
-## Architecture
-
-### Computational Graph
-
-The MLP is represented as a directed acyclic graph:
-- **Nodes**: Neurons with value, gradient, bias, activation
-- **Edges**: Weighted connections with weight and gradient
-- **Layers**: Ordered collections of nodes
-
-### Forward Pass
-
-```
-Input Layer → Hidden Layers → Output Layer
-     ↓            ↓              ↓
-   x₁,x₂...   h = σ(Wx+b)    ŷ = σ(Wₕh+b)
+### Connection (connection.py)
+```python
+@dataclass
+class Connection:
+    source: Neuron
+    target: Neuron
+    weight: float         # inicial aleatório [-1, 1]
+    gradient: float       # dL/dw (calculado no backprop)
 ```
 
-### Backpropagation
+### Network (network.py)
+- **Forward**: `set_input()` → `forward_step()` (neurônio a neurônio) ou `forward_all()`
+- **Backprop**: MSE loss, 1 neurônio saída, chain rule manual
+- **Gradientes**: `dL/dw = source.output * target.delta`, `dL/db = delta`
+- **Treino**: `train_step()`, `train_epoch()`, atualização SGD
+- **Arquitetura dinâmica**: `add_hidden_layer()`, `remove_hidden_layer()`, `add_neuron_to_hidden_layer()`, `remove_neuron_from_hidden_layer()`
 
-Gradients flow backward through the graph:
-1. Compute loss gradient at output
-2. Apply chain rule through activation derivatives
-3. Accumulate gradients on edges (weights) and nodes (biases)
-4. Update parameters: `w ← w - η·∇w`
+### Graph Utils (graph_utils.py)
+- Layout automático: camadas horizontais, neurônios verticais centralizados
+- Cores: pesos (azul+/vermelho-), gradientes (verde+/magenta-)
+- Espessura proporcional à magnitude
 
-## Visualization
+---
 
-The dashboard provides:
-- **Graph View**: Network topology with real-time weight colors/widths
-- **Metrics View**: Training/validation loss & accuracy curves
-- **Weight History**: Distribution evolution over epochs
-- **Animation**: GIF generation of training progress
+## 📊 Datasets
 
-## GitFlow Workflow
+### Heart Disease (rsc/heart.csv)
+- **Fonte**: UCI Cleveland
+- **302 amostras**, **13 features**, target binário (0/1)
+- Features: age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal
+
+### Diabetes 130-US (rsc/diabetes.csv)
+- **Fonte**: UCI Diabetes 130-US Hospitals (1999-2008)
+- **101.766 amostras**, **39 features** (após processamento)
+- Target: readmitted < 30 dias (1) vs ≥30/NO (0) — **imbalance 89%/11%**
+- Features: demografia, histórico médico, medicamentos, diagnósticos
+
+---
+
+## 🏗️ GitFlow (Versionamento)
 
 ```bash
-# Start feature branch
-git checkout develop
-git checkout -b feature/mlp-implementation
+# Branches principais
+main          # Releases (tagged v0.1.0, v1.0.0...)
+develop       # Integração contínua
+feature/*     # Novas funcionalidades
+hotfix/*      # Correções urgentes em produção
 
-# Work on feature...
-git add .
-git commit -m "feat: implement MLP computational graph"
-
-# Finish feature
+# Fluxo típico
 git checkout develop
-git merge --no-ff feature/mlp-implementation
-git branch -d feature/mlp-implementation
+git checkout -b feature/nova-funcionalidade
+# ... desenvolve ...
+git checkout develop
+git merge --no-ff feature/nova-funcionalidade
+git branch -d feature/nova-funcionalidade
 
 # Release
 git checkout main
 git merge --no-ff develop
-git tag -a v0.1.0 -m "Release v0.1.0"
+git tag -a v1.0.0 -m "Release v1.0.0"
 ```
 
-## Dataset
+---
 
-**Heart Disease (Cleveland)**:
-- 303 samples, 13 features
-- Binary classification: disease (1) vs no disease (0)
-- Features: age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal
+## 🧪 Testes
 
-**Diabetes 130-US Hospitals** (bonus challenge):
-- 100k+ samples, 50+ features
-- Predict 30-day readmission
-- Leaderboard competition
+```bash
+pytest tests/ -v
+```
 
-## Requirements
+---
 
-- Python 3.10+
-- NumPy, Pandas, Scikit-learn
-- Matplotlib, NetworkX (visualization)
+## 📚 Documentação
 
-## License
+| Arquivo | Conteúdo |
+|---------|----------|
+| `docs/architecture.md` | Arquitetura detalhada (grafo, forward, backprop) |
+| `docs/api.md` | Referência completa de classes/métodos |
+| `docs/experiment_guide.md` | Guia de experimentos, hiperparâmetros, diabetes challenge |
+| `docs/project_explanation.md` | Documento completo para apresentação ao professor |
 
-MIT License - Educational project for Advanced AI Topics course.
+---
+
+## ✨ Nossa Identidade (Além do Professor)
+
+1. **Streamlit App** (`app.py`): Demo web interativa com sliders, gráficos ao vivo, inferência manual
+2. **Versão NumPy** (`src/mlp/`): Implementação vetorizada para comparação de performance
+3. **ExperimentHarness** (`scripts/train.py`): Configuração via dataclass, callbacks, checkpoints, animação GIF
+4. **Documentação Profissional**: 4 arquivos .md cobrindo arquitetura, API, experimentos, apresentação
+5. **CI/CD**: GitHub Actions com testes, lint, formatação
+6. **Testes Unitários**: Cobertura de grafo, forward, backprop, dados, visualização
+6. **Diabetes Real**: Dataset processado e pronto para leaderboard
+
+---
+
+## 🔮 Próximos Passos (Sugestões)
+
+- [ ] Gráfico de loss em tempo real na GUI (matplotlib/QCustomPlot)
+- [ ] Múltiplos neurônios de saída + Softmax
+- [ ] Persistência (salvar/carregar pesos JSON/pickle)
+- [ ] Normalização integrada na Network
+- [ ] Mini-batches e shuffle no treino
+- [ ] Dropout / BatchNorm na arquitetura dinâmica
+- [ ] Exportar imagem da topologia (PNG/SVG)
+
+---
+
+## 📄 Licença
+
+Uso educacional. Adapte livremente para fins de ensino.
+
+---
+
+**Desenvolvido para Tópicos Avançados em IA**  
+*Baseado na estrutura didática do professor + identidade própria*
