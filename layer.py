@@ -15,7 +15,9 @@ class Layer:
     def add_neuron(self, bias: float = 0.0) -> Neuron:
         """Adiciona neurônio no final da camada."""
         position = len(self.neurons)
-        neuron = Neuron(bias=bias, layer_index=self.layer_index, position_in_layer=position)
+        neuron = Neuron(
+            bias=bias, layer_index=self.layer_index, position_in_layer=position
+        )
         self.neurons.append(neuron)
         return neuron
 

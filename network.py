@@ -24,7 +24,7 @@ class Network:
         layer_sizes: List[int],
         activation: str = "sigmoid",
         weight_range: tuple = (-1.0, 1.0),
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
     ) -> None:
         """
         Args:
@@ -44,7 +44,9 @@ class Network:
         self.weight_range = weight_range
         self.layers: List[Layer] = []
         self.connections: List[Connection] = []
-        self.last_gradients: List[tuple] = []  # (connection, gradient) para visualização
+        self.last_gradients: List[tuple] = (
+            []
+        )  # (connection, gradient) para visualização
 
         self._build_layers()
         self._build_connections()
@@ -97,7 +99,9 @@ class Network:
         """Define valores de entrada na camada de input."""
         input_layer = self.layers[0]
         if len(values) != len(input_layer.neurons):
-            raise ValueError(f"Esperado {len(input_layer.neurons)} entradas, recebido {len(values)}")
+            raise ValueError(
+                f"Esperado {len(input_layer.neurons)} entradas, recebido {len(values)}"
+            )
         for neuron, val in zip(input_layer.neurons, values):
             neuron.output = float(val)
 
@@ -132,7 +136,9 @@ class Network:
                 break
         return self.get_output()
 
-    def forward_neuron_by_neuron(self, inputs: List[float], callback: Optional[Callable] = None) -> List[float]:
+    def forward_neuron_by_neuron(
+        self, inputs: List[float], callback: Optional[Callable] = None
+    ) -> List[float]:
         """
         Forward passo-a-passo neurônio a neurônio (para visualização).
         Callback(neuron) chamado após cada neurônio processado.
@@ -211,14 +217,21 @@ class Network:
 
     # ==================== TREINO ====================
 
-    def train_step(self, inputs: List[float], target: float, learning_rate: float) -> float:
+    def train_step(
+        self, inputs: List[float], target: float, learning_rate: float
+    ) -> float:
         """Um passo de treino: forward + backprop + update."""
         self.forward_all(inputs)
         loss = self.backprop(target)
         self.update_weights(learning_rate)
         return loss
 
-    def train_epoch(self, dataset_inputs: List[List[float]], dataset_targets: List[float], learning_rate: float) -> tuple:
+    def train_epoch(
+        self,
+        dataset_inputs: List[List[float]],
+        dataset_targets: List[float],
+        learning_rate: float,
+    ) -> tuple:
         """
         Treina uma época completa no dataset.
         Retorna (loss_medio, acuracia) com threshold 0.5.
@@ -298,7 +311,7 @@ class Network:
     def topology_summary(self) -> str:
         """Resumo textual da topologia."""
         lines = []
-        lines.append(f"layers: {', '.join(str(len(l.neurons)) for l in self.layers)}")
+        lines.append(f"layers: {', '.join(str(len(layer.neurons)) for layer in self.layers)}")
         lines.append(f"connections: {len(self.connections)}")
         lines.append(f"activation: {self.activation_name}")
         return " | ".join(lines)
@@ -316,10 +329,10 @@ class Network:
                             "bias": n.bias,
                             "output": n.output,
                             "delta": n.delta,
-                            "input_sum": n.input_sum
+                            "input_sum": n.input_sum,
                         }
                         for n in layer.neurons
-                    ]
+                    ],
                 }
                 for layer in self.layers
             ],
@@ -328,11 +341,11 @@ class Network:
                     "source_id": c.source.neuron_id,
                     "target_id": c.target.neuron_id,
                     "weight": c.weight,
-                    "gradient": c.gradient
+                    "gradient": c.gradient,
                 }
                 for c in self.connections
             ],
-            "activation": self.activation_name
+            "activation": self.activation_name,
         }
 
     def __repr__(self) -> str:

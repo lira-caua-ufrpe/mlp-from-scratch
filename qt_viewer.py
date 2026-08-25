@@ -3,45 +3,77 @@
 from __future__ import annotations
 import sys
 import math
-import random
-import time
-from typing import List, Dict, Tuple, Optional, Callable
+from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
 from PyQt6.QtCore import (
-    Qt, QTimer, QPointF, QRectF, QEvent, pyqtSignal, QObject, QThread
+    Qt,
+    QTimer,
+    QPointF,
+    pyqtSignal,
+    QObject,
+    QThread,
 )
 from PyQt6.QtGui import (
-    QPainter, QColor, QPen, QBrush, QFont, QFontMetrics, QWheelEvent,
-    QMouseEvent, QPaintEvent, QResizeEvent, QAction
+    QPainter,
+    QColor,
+    QPen,
+    QBrush,
+    QFont,
+    QFontMetrics,
+    QWheelEvent,
+    QMouseEvent,
+    QPaintEvent,
+    QResizeEvent,
 )
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QSpinBox, QDoubleSpinBox, QPushButton, QComboBox,
-    QLineEdit, QCheckBox, QGroupBox, QFormLayout, QScrollArea,
-    QSplitter, QMessageBox, QFileDialog, QTextEdit, QDialog,
-    QDialogButtonBox, QTabWidget
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QSpinBox,
+    QDoubleSpinBox,
+    QPushButton,
+    QComboBox,
+    QLineEdit,
+    QCheckBox,
+    QGroupBox,
+    QFormLayout,
+    QScrollArea,
+    QSplitter,
+    QMessageBox,
+    QFileDialog,
+    QTextEdit,
+    QDialog,
+    QDialogButtonBox,
 )
 
 from neuron import Neuron
-from connection import Connection
-from layer import Layer
 from network import Network
 from loader import CSVLoader
 import graph_utils as gu
 
-
 # ==================== WORKER THREAD PARA TREINO ====================
+
 
 class TrainingWorker(QObject):
     """Worker para treino em background (não bloqueia GUI)."""
+
     progress = pyqtSignal(int, int, float, float)  # sample_idx, total, loss, acc
     epoch_done = pyqtSignal(float, float)  # avg_loss, accuracy
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, network: Network, train_x: List[List[float]], train_y: List[float],
-                 learning_rate: float, epochs: int = 1):
+    def __init__(
+        self,
+        network: Network,
+        train_x: List[List[float]],
+        train_y: List[float],
+        learning_rate: float,
+        epochs: int = 1,
+    ):
         super().__init__()
         self.network = network
         self.train_x = train_x
@@ -66,7 +98,9 @@ class TrainingWorker(QObject):
                     if pred == int(y):
                         correct += 1
                     if i % 10 == 0:
-                        self.progress.emit(i, len(self.train_x), loss, correct / (i + 1))
+                        self.progress.emit(
+                            i, len(self.train_x), loss, correct / (i + 1)
+                        )
                 avg_loss = total_loss / len(self.train_x) if self.train_x else 0.0
                 accuracy = correct / len(self.train_x) if self.train_x else 0.0
                 self.epoch_done.emit(avg_loss, accuracy)
@@ -80,9 +114,11 @@ class TrainingWorker(QObject):
 
 # ==================== GRAPH VIEW WIDGET ====================
 
+
 @dataclass
 class ViewState:
     """Estado da visualização (zoom, pan)."""
+
     scale: float = 1.0
     offset_x: float = 0.0
     offset_y: float = 0.0
@@ -117,12 +153,12 @@ class GraphView(QWidget):
 
     def _recompute_positions(self) -> None:
         """Recalcula posições dos neurônios baseado no tamanho atual."""
-        layer_sizes = [len(l.neurons) for l in self.network.layers]
+        layer_sizes = [len(layer.neurons) for layer in self.network.layers]
         pos_dict = gu.compute_layer_positions(
             layer_sizes,
             canvas_width=self.width(),
             canvas_height=self.height(),
-            margin=100
+            margin=100,
         )
         self._positions.clear()
         for layer_idx, layer_positions in pos_dict.items():
@@ -139,30 +175,34 @@ class GraphView(QWidget):
     def world_to_screen(self, point: QPointF) -> QPointF:
         return QPointF(
             point.x() * self.view.scale + self.view.offset_x,
-            point.y() * self.view.scale + self.view.offset_y
+            point.y() * self.view.scale + self.view.offset_y,
         )
 
     def screen_to_world(self, point: QPointF) -> QPointF:
         return QPointF(
             (point.x() - self.view.offset_x) / self.view.scale,
-            (point.y() - self.view.offset_y) / self.view.scale
+            (point.y() - self.view.offset_y) / self.view.scale,
         )
 
     # ---------- Mouse Events ----------
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        if event.button() == Qt.MouseButton.MiddleButton or \
-           (event.button() == Qt.MouseButton.LeftButton and event.modifiers() & Qt.KeyboardModifier.AltModifier):
+        if event.button() == Qt.MouseButton.MiddleButton or (
+            event.button() == Qt.MouseButton.LeftButton
+            and event.modifiers() & Qt.KeyboardModifier.AltModifier
+        ):
             self.view.dragging = True
             self.view.last_mouse = (event.position().x(), event.position().y())
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
         elif event.button() == Qt.MouseButton.LeftButton:
             # Clique em neurônio
-            world_pos = self.screen_to_world(QPointF(event.position()))
+            _ = self.screen_to_world(QPointF(event.position()))
             for neuron_id, pos in self._positions.items():
                 screen_pos = self.world_to_screen(pos)
-                dist = math.hypot(screen_pos.x() - event.position().x(),
-                                  screen_pos.y() - event.position().y())
+                dist = math.hypot(
+                    screen_pos.x() - event.position().x(),
+                    screen_pos.y() - event.position().y(),
+                )
                 if dist < 20 / self.view.scale:
                     # Encontra neurônio
                     for layer in self.network.layers:
@@ -185,8 +225,10 @@ class GraphView(QWidget):
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
-        if event.button() == Qt.MouseButton.MiddleButton or \
-           (event.button() == Qt.MouseButton.LeftButton and event.modifiers() & Qt.KeyboardModifier.AltModifier):
+        if event.button() == Qt.MouseButton.MiddleButton or (
+            event.button() == Qt.MouseButton.LeftButton
+            and event.modifiers() & Qt.KeyboardModifier.AltModifier
+        ):
             self.view.dragging = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
         super().mouseReleaseEvent(event)
@@ -194,7 +236,6 @@ class GraphView(QWidget):
     def wheelEvent(self, event: QWheelEvent) -> None:
         # Zoom no cursor
         factor = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
-        old_scale = self.view.scale
         self.view.scale *= factor
         self.view.scale = max(0.1, min(5.0, self.view.scale))
 
@@ -230,12 +271,14 @@ class GraphView(QWidget):
             source_pos = self._positions.get(conn.source.neuron_id)
             target_pos = self._positions.get(conn.target.neuron_id)
             if source_pos and target_pos:
-                connections_data.append({
-                    "source": source_pos,
-                    "target": target_pos,
-                    "weight": conn.weight,
-                    "gradient": conn.gradient
-                })
+                connections_data.append(
+                    {
+                        "source": source_pos,
+                        "target": target_pos,
+                        "weight": conn.weight,
+                        "gradient": conn.gradient,
+                    }
+                )
 
         max_w = gu.max_weight_magnitude(connections_data)
         max_g = gu.max_gradient_magnitude(connections_data)
@@ -272,8 +315,8 @@ class GraphView(QWidget):
         fm = QFontMetrics(painter.font())
 
         for layer_idx, layer in enumerate(self.network.layers):
-            is_input = (layer_idx == 0)
-            is_output = (layer_idx == len(self.network.layers) - 1)
+            is_input = layer_idx == 0
+            is_output = layer_idx == len(self.network.layers) - 1
 
             for neuron in layer.neurons:
                 pos = self._positions.get(neuron.neuron_id)
@@ -303,9 +346,11 @@ class GraphView(QWidget):
                     bias_text = gu.format_bias(neuron.bias)
                     text_rect = fm.boundingRect(bias_text)
                     painter.drawText(
-                        QPointF(screen_pos.x() - text_rect.width() / 2,
-                                screen_pos.y() + radius + 14),
-                        bias_text
+                        QPointF(
+                            screen_pos.x() - text_rect.width() / 2,
+                            screen_pos.y() + radius + 14,
+                        ),
+                        bias_text,
                     )
 
                 # Output value (pequeno)
@@ -314,9 +359,11 @@ class GraphView(QWidget):
                     out_text = f"{neuron.output:.2f}"
                     text_rect = fm.boundingRect(out_text)
                     painter.drawText(
-                        QPointF(screen_pos.x() - text_rect.width() / 2,
-                                screen_pos.y() - radius - 4),
-                        out_text
+                        QPointF(
+                            screen_pos.x() - text_rect.width() / 2,
+                            screen_pos.y() - radius - 4,
+                        ),
+                        out_text,
                     )
 
         # Feature names (esquerda da input layer)
@@ -327,15 +374,22 @@ class GraphView(QWidget):
                 if not pos:
                     continue
                 screen_pos = self.world_to_screen(pos)
-                if neuron.position_in_layer < len(self.network.loader.feature_names) if hasattr(self.network, 'loader') and self.network.loader else False:
-                    feat_name = self.network.loader.feature_names[neuron.position_in_layer] if hasattr(self.network, 'loader') and self.network.loader else f"x{neuron.position_in_layer}"
+                if (
+                    neuron.position_in_layer < len(self.network.loader.feature_names)
+                    if hasattr(self.network, "loader") and self.network.loader
+                    else False
+                ):
+                    feat_name = (
+                        self.network.loader.feature_names[neuron.position_in_layer]
+                        if hasattr(self.network, "loader") and self.network.loader
+                        else f"x{neuron.position_in_layer}"
+                    )
                 else:
                     feat_name = f"x{neuron.position_in_layer}"
                 painter.setPen(QPen(QColor(0, 0, 0), 1))
                 painter.setFont(QFont("Arial", 7, QFont.Weight.Bold))
                 painter.drawText(
-                    QPointF(screen_pos.x() - 80, screen_pos.y() + 4),
-                    feat_name
+                    QPointF(screen_pos.x() - 80, screen_pos.y() + 4), feat_name
                 )
 
         # Output label (direita da output layer)
@@ -348,10 +402,7 @@ class GraphView(QWidget):
                 screen_pos = self.world_to_screen(pos)
                 painter.setPen(QPen(QColor(0, 0, 0), 1))
                 painter.setFont(QFont("Arial", 8, QFont.Weight.Bold))
-                painter.drawText(
-                    QPointF(screen_pos.x() + 25, screen_pos.y() + 4),
-                    "ŷ"
-                )
+                painter.drawText(QPointF(screen_pos.x() + 25, screen_pos.y() + 4), "ŷ")
 
     def _draw_legend(self, painter: QPainter) -> None:
         painter.setFont(QFont("Arial", 7))
@@ -393,6 +444,7 @@ class GraphView(QWidget):
 
 # ==================== LOSS HISTORY DIALOG ====================
 
+
 class LossHistoryDialog(QDialog):
     """Janela modal com histórico textual de loss (últimos 200)."""
 
@@ -415,11 +467,12 @@ class LossHistoryDialog(QDialog):
 
     def update_history(self, loss_history: List[float]) -> None:
         recent = loss_history[-200:]
-        lines = [f"{i+1:4d}: {loss:.6f}" for i, loss in enumerate(recent)]
+        lines = [f"{i + 1:4d}: {loss:.6f}" for i, loss in enumerate(recent)]
         self.text_edit.setPlainText("\n".join(lines))
 
 
 # ==================== MAIN WINDOW ====================
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -459,7 +512,9 @@ class MainWindow(QMainWindow):
         self.graph_view.neuron_clicked.connect(self._on_neuron_clicked)
         graph_container = QWidget()
         graph_layout = QVBoxLayout(graph_container)
-        graph_layout.addWidget(QLabel("Visualização do Grafo (scroll=zoom, arraste=pan, clique=highlight)"))
+        graph_layout.addWidget(
+            QLabel("Visualização do Grafo (scroll=zoom, arraste=pan, clique=highlight)")
+        )
         graph_layout.addWidget(self.graph_view)
         splitter.addWidget(graph_container)
 
@@ -493,7 +548,9 @@ class MainWindow(QMainWindow):
         dlayout.addWidget(self.btn_load_heart)
 
         self.btn_load_diabetes = QPushButton("Carregar diabetes.csv")
-        self.btn_load_diabetes.clicked.connect(lambda: self._load_dataset("rsc/diabetes.csv"))
+        self.btn_load_diabetes.clicked.connect(
+            lambda: self._load_dataset("rsc/diabetes.csv")
+        )
         dlayout.addWidget(self.btn_load_diabetes)
 
         self.btn_load_custom = QPushButton("Carregar CSV personalizado...")
@@ -538,7 +595,9 @@ class MainWindow(QMainWindow):
         ilayout = QVBoxLayout(input_group)
 
         self.edit_input = QLineEdit()
-        self.edit_input.setPlaceholderText("Valores separados por vírgula (ex: 0.5, -0.2, 1.0...)")
+        self.edit_input.setPlaceholderText(
+            "Valores separados por vírgula (ex: 0.5, -0.2, 1.0...)"
+        )
         ilayout.addWidget(self.edit_input)
 
         self.btn_forward = QPushButton("▶ Forward Pass (completo)")
@@ -631,17 +690,26 @@ class MainWindow(QMainWindow):
 
         self.chk_show_weights = QCheckBox("Mostrar pesos nas arestas")
         self.chk_show_weights.setChecked(True)
-        self.chk_show_weights.toggled.connect(lambda v: setattr(self.graph_view, 'show_weights', v) or self.graph_view.update())
+        self.chk_show_weights.toggled.connect(
+            lambda v: setattr(self.graph_view, "show_weights", v)
+            or self.graph_view.update()
+        )
         vlayout.addWidget(self.chk_show_weights)
 
         self.chk_show_bias = QCheckBox("Mostrar bias nos neurônios")
         self.chk_show_bias.setChecked(True)
-        self.chk_show_bias.toggled.connect(lambda v: setattr(self.graph_view, 'show_bias', v) or self.graph_view.update())
+        self.chk_show_bias.toggled.connect(
+            lambda v: setattr(self.graph_view, "show_bias", v)
+            or self.graph_view.update()
+        )
         vlayout.addWidget(self.chk_show_bias)
 
         self.chk_show_features = QCheckBox("Mostrar nomes das features")
         self.chk_show_features.setChecked(True)
-        self.chk_show_features.toggled.connect(lambda v: setattr(self.graph_view, 'show_feature_names', v) or self.graph_view.update())
+        self.chk_show_features.toggled.connect(
+            lambda v: setattr(self.graph_view, "show_feature_names", v)
+            or self.graph_view.update()
+        )
         vlayout.addWidget(self.chk_show_features)
 
         layout.addWidget(vis_group)
@@ -654,6 +722,7 @@ class MainWindow(QMainWindow):
     def _load_default_dataset(self) -> None:
         # Tenta carregar heart.csv se existir
         import os
+
         if os.path.exists("rsc/heart.csv"):
             self._load_dataset("rsc/heart.csv")
 
@@ -665,33 +734,41 @@ class MainWindow(QMainWindow):
             features, targets = self.loader.load()
 
             # Split
-            self.train_x, self.train_y, self.test_x, self.test_y = \
+            self.train_x, self.train_y, self.test_x, self.test_y = (
                 self.loader.split_train_test(features, targets, test_ratio=0.2)
+            )
 
             # Normaliza
-            self.train_x, self.test_x, self.means, self.stds = \
+            self.train_x, self.test_x, self.means, self.stds = (
                 self.loader.normalize_features(self.train_x, self.test_x)
+            )
 
             self.current_sample_idx = 0
             self._rebuild_network()
             self._update_dataset_info()
             self._update_sample_info()
-            self.statusBar().showMessage(f"Carregado: {filepath} ({len(self.train_x)} treino, {len(self.test_x)} teste)")
+            self.statusBar().showMessage(
+                f"Carregado: {filepath} ({len(self.train_x)} treino, {len(self.test_x)} teste)"
+            )
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Falha ao carregar dataset:\n{e}")
 
     def _load_custom_csv(self) -> None:
-        filepath, _ = QFileDialog.getOpenFileName(self, "Selecionar CSV", "", "CSV Files (*.csv)")
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Selecionar CSV", "", "CSV Files (*.csv)"
+        )
         if filepath:
             self._load_dataset(filepath)
 
     def _update_dataset_info(self) -> None:
         if self.loader:
             info = self.loader.get_info()
-            text = (f"Features: {info['num_features']}\n"
-                    f"Samples: {info['num_samples']}\n"
-                    f"Target: {info['target_name']}\n"
-                    f"Treino: {len(self.train_x)} | Teste: {len(self.test_x)}")
+            text = (
+                f"Features: {info['num_features']}\n"
+                f"Samples: {info['num_samples']}\n"
+                f"Target: {info['target_name']}\n"
+                f"Treino: {len(self.train_x)} | Teste: {len(self.test_x)}"
+            )
             self.dataset_info.setText(text)
 
     # ==================== NETWORK MANAGEMENT ====================
@@ -704,7 +781,9 @@ class MainWindow(QMainWindow):
         hidden_neurons = self.spin_hidden_neurons.value()
         activation = self.combo_activation.currentText()
 
-        layer_sizes = [self.loader.num_features] + [hidden_neurons] * hidden_layers + [1]
+        layer_sizes = (
+            [self.loader.num_features] + [hidden_neurons] * hidden_layers + [1]
+        )
 
         self.network = Network(layer_sizes, activation=activation, seed=42)
         # Anexa loader para nomes de features
@@ -715,7 +794,9 @@ class MainWindow(QMainWindow):
         self.graph_view._recompute_positions()
         self.graph_view.update()
 
-        self.statusBar().showMessage(f"Rede reconstruída: {self.network.topology_summary()}")
+        self.statusBar().showMessage(
+            f"Rede reconstruída: {self.network.topology_summary()}"
+        )
 
     def _on_arch_change(self) -> None:
         self._rebuild_network()
@@ -729,7 +810,9 @@ class MainWindow(QMainWindow):
 
     def _update_sample_info(self) -> None:
         if self.train_x:
-            self.sample_info.setText(f"Sample: {self.current_sample_idx + 1}/{len(self.train_x)}")
+            self.sample_info.setText(
+                f"Sample: {self.current_sample_idx + 1}/{len(self.train_x)}"
+            )
             # Preenche input manual
             x = self.train_x[self.current_sample_idx]
             self.edit_input.setText(", ".join(f"{v:.3f}" for v in x))
@@ -769,7 +852,9 @@ class MainWindow(QMainWindow):
         output = self.network.get_output()[0]
         target = y
         error = abs(output - target)
-        self.statusBar().showMessage(f"Forward: out={output:.3f} target={target} error={error:.3f}")
+        self.statusBar().showMessage(
+            f"Forward: out={output:.3f} target={target} error={error:.3f}"
+        )
 
     def _do_forward_step(self) -> None:
         if not self.network or not self.train_x:
@@ -777,7 +862,9 @@ class MainWindow(QMainWindow):
         x = self.train_x[self.current_sample_idx]
 
         # Se rede está em estado inicial, faz set_input
-        if all(n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons):
+        if all(
+            n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons
+        ):
             self.network.reset_states()
             self.network.set_input(x)
 
@@ -786,10 +873,16 @@ class MainWindow(QMainWindow):
             self.graph_view.set_highlighted_neuron(processed[-1])
             self.graph_view.update()
             # Se terminou, mostra resultado
-            if not any(n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons):
+            if not any(
+                n.output == 0
+                for layer in self.network.layers[1:]
+                for n in layer.neurons
+            ):
                 output = self.network.get_output()[0]
                 target = self.train_y[self.current_sample_idx]
-                self.statusBar().showMessage(f"Forward completo: out={output:.3f} target={target}")
+                self.statusBar().showMessage(
+                    f"Forward completo: out={output:.3f} target={target}"
+                )
 
     def _toggle_auto_play(self, checked: bool) -> None:
         if checked:
@@ -808,7 +901,9 @@ class MainWindow(QMainWindow):
             return
 
         # Se precisa resetar
-        if all(n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons):
+        if all(
+            n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons
+        ):
             x = self.train_x[self.current_sample_idx]
             self.network.reset_states()
             self.network.set_input(x)
@@ -819,7 +914,9 @@ class MainWindow(QMainWindow):
             self.graph_view.update()
 
         # Verifica se terminou
-        if not any(n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons):
+        if not any(
+            n.output == 0 for layer in self.network.layers[1:] for n in layer.neurons
+        ):
             output = self.network.get_output()[0]
             target = self.train_y[self.current_sample_idx]
             self.statusBar().showMessage(f"Auto: out={output:.3f} target={target}")
@@ -829,7 +926,9 @@ class MainWindow(QMainWindow):
             self.network.reset_states()
 
         # Agenda próximo passo
-        self.auto_play_timer = QTimer.singleShot(self.spin_auto_speed.value(), self._auto_play_step)
+        self.auto_play_timer = QTimer.singleShot(
+            self.spin_auto_speed.value(), self._auto_play_step
+        )
 
     def _update_auto_speed(self, value: int) -> None:
         # Timer será recriado no próximo step
@@ -845,8 +944,12 @@ class MainWindow(QMainWindow):
             if pred == int(y):
                 correct += 1
         acc = correct / len(self.test_x)
-        self.statusBar().showMessage(f"Fast Forward Teste: Acurácia = {acc:.2%} ({correct}/{len(self.test_x)})")
-        QMessageBox.information(self, "Fast Forward", f"Acurácia no conjunto de teste: {acc:.2%}")
+        self.statusBar().showMessage(
+            f"Fast Forward Teste: Acurácia = {acc:.2%} ({correct}/{len(self.test_x)})"
+        )
+        QMessageBox.information(
+            self, "Fast Forward", f"Acurácia no conjunto de teste: {acc:.2%}"
+        )
 
     # ==================== TRAINING ====================
 
@@ -886,7 +989,9 @@ class MainWindow(QMainWindow):
         self.btn_stop_training.setEnabled(True)
         self.btn_auto_play.setEnabled(False)
 
-        self.training_worker = TrainingWorker(self.network, self.train_x, self.train_y, lr, epochs)
+        self.training_worker = TrainingWorker(
+            self.network, self.train_x, self.train_y, lr, epochs
+        )
         self.training_thread = QThread()
         self.training_worker.moveToThread(self.training_thread)
 
@@ -899,12 +1004,18 @@ class MainWindow(QMainWindow):
 
         self.training_thread.start()
 
-    def _on_train_progress(self, sample_idx: int, total: int, loss: float, acc: float) -> None:
-        self.train_status.setText(f"Sample {sample_idx+1}/{total} | Loss: {loss:.4f} | Acc: {acc:.2%}")
+    def _on_train_progress(
+        self, sample_idx: int, total: int, loss: float, acc: float
+    ) -> None:
+        self.train_status.setText(
+            f"Sample {sample_idx + 1}/{total} | Loss: {loss:.4f} | Acc: {acc:.2%}"
+        )
 
     def _on_epoch_done(self, avg_loss: float, accuracy: float) -> None:
         self.loss_history.append(avg_loss)
-        self.train_status.setText(f"Época concluída | Loss médio: {avg_loss:.4f} | Acc: {accuracy:.2%}")
+        self.train_status.setText(
+            f"Época concluída | Loss médio: {avg_loss:.4f} | Acc: {accuracy:.2%}"
+        )
 
     def _on_training_finished(self) -> None:
         self.btn_train_epoch.setEnabled(True)
@@ -926,7 +1037,9 @@ class MainWindow(QMainWindow):
 
     def _show_loss_history(self) -> None:
         if not self.loss_history:
-            QMessageBox.information(self, "Loss History", "Nenhum histórico de loss ainda.")
+            QMessageBox.information(
+                self, "Loss History", "Nenhum histórico de loss ainda."
+            )
             return
         dialog = LossHistoryDialog(self.loss_history, self)
         dialog.exec()
@@ -941,6 +1054,7 @@ class MainWindow(QMainWindow):
 
 
 # ==================== ENTRY POINT ====================
+
 
 def main():
     app = QApplication(sys.argv)

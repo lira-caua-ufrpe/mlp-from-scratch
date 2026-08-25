@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional
 import uuid
 
 
 @dataclass
 class Neuron:
     """Representa um neurônio (nó) no grafo da rede neural."""
+
     bias: float = 0.0
     input_sum: float = 0.0
     output: float = 0.0

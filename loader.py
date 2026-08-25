@@ -28,7 +28,7 @@ class CSVLoader:
         features: List[List[float]] - cada amostra é lista de features
         targets: List[float] - cada target é float
         """
-        with open(self.filepath, 'r', encoding='utf-8') as f:
+        with open(self.filepath, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
             rows = list(reader)
 
@@ -65,7 +65,11 @@ class CSVLoader:
 
     @property
     def feature_names(self) -> List[str]:
-        return self.headers[:-1] if self.headers else [f"feat_{i}" for i in range(self.num_features)]
+        return (
+            self.headers[:-1]
+            if self.headers
+            else [f"feat_{i}" for i in range(self.num_features)]
+        )
 
     def get_info(self) -> dict:
         return {
@@ -74,7 +78,7 @@ class CSVLoader:
             "num_samples": self.num_samples,
             "headers": self.headers,
             "feature_names": self.headers[:-1],
-            "target_name": self.headers[-1] if self.headers else "target"
+            "target_name": self.headers[-1] if self.headers else "target",
         }
 
     def split_train_test(
@@ -83,7 +87,7 @@ class CSVLoader:
         targets: List[float],
         test_ratio: float = 0.2,
         shuffle: bool = True,
-        seed: int = 42
+        seed: int = 42,
     ) -> Tuple[List[List[float]], List[float], List[List[float]], List[float]]:
         """Split estratificado simples."""
         if shuffle:
@@ -97,13 +101,11 @@ class CSVLoader:
             list(features[:split_idx]),
             list(targets[:split_idx]),
             list(features[split_idx:]),
-            list(targets[split_idx:])
+            list(targets[split_idx:]),
         )
 
     def normalize_features(
-        self,
-        train_features: List[List[float]],
-        test_features: List[List[float]]
+        self, train_features: List[List[float]], test_features: List[List[float]]
     ) -> Tuple[List[List[float]], List[List[float]], List[float], List[float]]:
         """
         Normalização z-score (média 0, desvio 1) usando estatísticas do treino.
@@ -122,7 +124,9 @@ class CSVLoader:
 
         # Desvio padrão
         for i in range(num_feats):
-            var = sum((row[i] - means[i]) ** 2 for row in train_features) / len(train_features)
+            var = sum((row[i] - means[i]) ** 2 for row in train_features) / len(
+                train_features
+            )
             stds[i] = math.sqrt(var) if var > 0 else 1.0
 
         def normalize(rows: List[List[float]]) -> List[List[float]]:

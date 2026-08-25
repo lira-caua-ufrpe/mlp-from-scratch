@@ -5,7 +5,13 @@ from .loader import (
     load_diabetes,
     preprocess_data,
     one_hot_encode,
-    get_data_info
+    get_data_info,
 )
 
-__all__ = ["load_heart_disease", "load_diabetes", "preprocess_data", "one_hot_encode", "get_data_info"]
+__all__ = [
+    "load_heart_disease",
+    "load_diabetes",
+    "preprocess_data",
+    "one_hot_encode",
+    "get_data_info",
+]

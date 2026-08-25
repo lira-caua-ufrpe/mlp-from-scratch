@@ -1,15 +1,14 @@
 """graph_utils - Utilitários para visualização do grafo (posições, cores, espessuras)."""
 
 from __future__ import annotations
-from typing import List, Dict, Tuple, Optional
-import math
+from typing import List, Dict, Tuple
 
 
 def compute_layer_positions(
     layer_sizes: List[int],
     canvas_width: float = 800,
     canvas_height: float = 600,
-    margin: float = 80
+    margin: float = 80,
 ) -> Dict[int, List[Tuple[float, float]]]:
     """
     Calcula posições (x, y) para cada neurônio em cada camada.
@@ -17,7 +16,6 @@ def compute_layer_positions(
     """
     positions = {}
     num_layers = len(layer_sizes)
-    max_layer_size = max(layer_sizes)
 
     # Espaçamento horizontal
     usable_width = canvas_width - 2 * margin
@@ -72,7 +70,9 @@ def gradient_color(gradient: float, max_abs: float = 1.0) -> Tuple[int, int, int
         return (intensity, 55, intensity)  # Magenta
 
 
-def edge_thickness(weight: float, max_abs: float = 1.0, min_t: float = 1.0, max_t: float = 4.0) -> float:
+def edge_thickness(
+    weight: float, max_abs: float = 1.0, min_t: float = 1.0, max_t: float = 4.0
+) -> float:
     """Espessura da aresta proporcional à magnitude do peso."""
     if max_abs == 0:
         max_abs = 1.0
@@ -94,7 +94,9 @@ def max_gradient_magnitude(connections: List[dict]) -> float:
     return max(abs(c.get("gradient", 0)) for c in connections)
 
 
-def neuron_color(output: float, is_input: bool = False, is_output: bool = False) -> Tuple[int, int, int]:
+def neuron_color(
+    output: float, is_input: bool = False, is_output: bool = False
+) -> Tuple[int, int, int]:
     """Cor do neurônio baseada na saída (azul/vermelho) ou tipo."""
     if is_input:
         return (100, 200, 255)  # Azul claro para input

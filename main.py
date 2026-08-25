@@ -9,10 +9,14 @@ def main() -> None:
     # Carrega dados
     loader = CSVLoader("rsc/heart.csv")
     features, targets = loader.load()
-    print(f"dados carregados: features={loader.num_features} linhas={loader.num_samples}")
+    print(
+        f"dados carregados: features={loader.num_features} linhas={loader.num_samples}"
+    )
 
     # Split treino/teste
-    train_x, train_y, test_x, test_y = loader.split_train_test(features, targets, test_ratio=0.2)
+    train_x, train_y, test_x, test_y = loader.split_train_test(
+        features, targets, test_ratio=0.2
+    )
 
     # Normaliza
     train_x, test_x, means, stds = loader.normalize_features(train_x, test_x)
@@ -34,7 +38,7 @@ def main() -> None:
         pred = 1 if net.get_output()[0] > 0.5 else 0
         if pred == int(y):
             correct += 1
-    print(f"teste: acurácia={correct}/{len(test_x)} = {correct/len(test_x):.2%}")
+    print(f"teste: acurácia={correct}/{len(test_x)} = {correct / len(test_x):.2%}")
 
 
 if __name__ == "__main__":

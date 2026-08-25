@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 @dataclass
 class Connection:
     """Conexão direcionada source -> target com peso inicial aleatório."""
+
     source: Neuron
     target: Neuron
     weight: float = field(default_factory=lambda: random.uniform(-1.0, 1.0))
