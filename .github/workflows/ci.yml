@@ -55,6 +55,6 @@ jobs:
     - name: Install lint tools
       run: pip install flake8 black
     - name: Check formatting
-      run: black --check src/ tests/ scripts/
+      run: black --check . --exclude="spec-kit-main|mlp-main|.venv|venv|__pycache__|.pytest_cache"
     - name: Lint
-      run: flake8 src/ tests/ scripts/ --max-line-length=100 --ignore=E501,W503
+      run: flake8 . --max-line-length=100 --ignore=E501,W503 --exclude=spec-kit-main,mlp-main,.venv,venv,__pycache__,.pytest_cache
