@@ -1,6 +1,5 @@
 from typing import Dict, Any, Optional
 from network import Network
-from layer import Layer
 
 
 def add_layer(network: Network, size: int, position: Optional[int] = None) -> None:
@@ -9,6 +8,7 @@ def add_layer(network: Network, size: int, position: Optional[int] = None) -> No
     if position < 1 or position > len(network.layers) - 1:
         raise ValueError("posição inválida")
     from layer import Layer as _Layer
+
     network.layers.insert(position, _Layer(size))
     network._wire()  # type: ignore
 
@@ -56,26 +56,30 @@ def graph_data(network: Network) -> Dict[str, Any]:
             y = (offset + ni) * y_spacing
             norm = abs(neuron.bias) / max_bias if max_bias else 0.0
             width = 2.0 + 8.0 * norm
-            nodes.append({
-                "id": neuron.id,
-                "bias": neuron.bias,
-                "layer": li,
-                "x": x,
-                "y": y,
-                "color": color(neuron.bias),
-                "width": width,
-                "label": f"b={neuron.bias:.2f}",
-            })
+            nodes.append(
+                {
+                    "id": neuron.id,
+                    "bias": neuron.bias,
+                    "layer": li,
+                    "x": x,
+                    "y": y,
+                    "color": color(neuron.bias),
+                    "width": width,
+                    "label": f"b={neuron.bias:.2f}",
+                }
+            )
     for c in network.connections:
         norm = abs(c.weight) / max_weight if max_weight else 0.0
         width = 1.0 + 6.0 * norm
-        edges.append({
-            "id": c.id,
-            "source": c.source.id,
-            "target": c.target.id,
-            "weight": c.weight,
-            "color": color(c.weight),
-            "width": width,
-            "label": f"w={c.weight:.2f}",
-        })
+        edges.append(
+            {
+                "id": c.id,
+                "source": c.source.id,
+                "target": c.target.id,
+                "weight": c.weight,
+                "color": color(c.weight),
+                "width": width,
+                "label": f"w={c.weight:.2f}",
+            }
+        )
     return {"nodes": nodes, "edges": edges}
