@@ -221,7 +221,9 @@ with tab_arch:
         arch_df = pd.DataFrame(
             {
                 "Camada": [f"Input ({input_size})"]
-                + [f"Hidden {i + 1} ({h})" for i, h in enumerate(hidden_layers)]  # noqa: E226
+                + [
+                    f"Hidden {i + 1} ({h})" for i, h in enumerate(hidden_layers)
+                ]  # noqa: E226
                 + [f"Output (1)"],  # noqa: F541
                 "Neurônios": layer_sizes,
                 "Ativação": ["identity"] + all_activations,
