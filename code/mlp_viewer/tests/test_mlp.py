@@ -139,7 +139,7 @@ def test_train_step():
 
 def test_loader():
     """Test CSV Loader."""
-    loader = Loader("rsc/heart.csv")
+    loader = Loader("code/mlp_viewer/rsc/heart.csv")
     assert loader.feature_count == 13
     assert loader.row_count > 0
     assert len(loader.headers) == 14  # 13 features + 1 target
