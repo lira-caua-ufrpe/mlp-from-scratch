@@ -1,58 +1,43 @@
+﻿# Ambientes Virtuais e Dependências
+.venv/
+env/
+venv/
+*.env
+!segredos.example.env
+segredos.env
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-data/*.csv
-data/*.zip
-outputs/
-*.log
-*.pkl
-*.json
-diabetes+130-us+hospitals+for+years+1999-2008/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Coverage
+.pytest_cache/
 .coverage
 htmlcov/
-.pytest_cache/
+
+# LaTeX e Compilação de Documentos
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+*.dvi
+
+# IDE e Sistema Operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Saídas temporárias
+outputs/tmp/
+*.tmp
