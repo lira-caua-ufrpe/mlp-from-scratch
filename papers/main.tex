@@ -1,51 +1,44 @@
-﻿\documentclass[11pt,a4paper]{article}
+﻿\documentclass[runningheads]{llncs}
 
-% --- Pacotes Fundamentais ---
+\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[brazil,english]{babel}
-\usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\usepackage{cite}
-\usepackage{geometry}
-\geometry{margin=2.5cm}
-
-% --- Informações do Artigo ---
-\title{\textbf{Investigação e Implementação de Modelos Neurais em Tópicos Avançados de Inteligência Artificial}}
-
-\author{
-    Aluno: [Seu Nome Aqui] \\
-    \textit{Programa de Pós-Graduação / Graduação em Ciência da Computação} \\
-    \textit{Disciplina: Tópicos Avançados em Inteligência Artificial}
-}
-
-\date{\today}
+\usepackage{color}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
 
 \begin{document}
 
-\selectlanguage{brazil}
+\title{Investigação e Implementação de Modelos Neurais em Tópicos Avançados de Inteligência Artificial}
+\titlerunning{Modelos Neurais em Tópicos Avançados de IA}
+
+\author{Cauã Lira\inst{1}}
+\authorrunning{C. Lira}
+
+\institute{Universidade Federal Rural de Pernambuco (UFRPE)\\
+Recife - PE, Brasil\\
+\email{ccunhalira8760@gmail.com}}
 
 \maketitle
 
 \begin{abstract}
-Este trabalho apresenta o estudo, projeto e implementação de arquiteturas neurais avançadas no âmbito da disciplina de Tópicos Avançados em Inteligência Artificial. Através de uma abordagem baseada em grafo explícito e experimentação empírica, investigam-se os impactos de hiperparâmetros, dinâmicas de treinamento e convergência de gradientes. Os resultados obtidos demonstram a eficácia dos métodos propostos, validando a integração entre o ambiente de codificação e a análise técnica formal.
+Este trabalho apresenta o estudo, projeto e implementação de arquiteturas neurais avançadas no âmbito da disciplina de Tópicos Avançados em Inteligência Artificial. Através de uma abordagem baseada em grafo explícito e experimentação empírica, investigam-se os impactos de hiperparâmetros, dinâmicas de treinamento e convergência de gradientes. Os resultados obtidos demonstram a consistência dos métodos propostos, validando a integração entre o ambiente de experimentação prática e a análise técnica formal.
+
+\keywords{Inteligência Artificial \and Redes Neurais \and Multi-Layer Perceptron \and Grafo Explícito \and Aprendizado Profundo.}
 \end{abstract}
 
-\vspace{0.5cm}
-\noindent\textbf{Palavras-chave:} Inteligência Artificial, Redes Neurais Artificiais, Multi-Layer Perceptron, Otimização de Hiperparâmetros.
-
-\vspace{0.8cm}
-
-% --- Importação Modular das Seções ---
+% --- Seções Modulares ---
 \input{sections/01_introducao.tex}
 \input{sections/02_trabalhos_relacionados.tex}
 \input{sections/03_metodologia.tex}
 \input{sections/04_experimentos.tex}
 \input{sections/05_conclusao.tex}
 
-% --- Referências Bibliográficas ---
-\bibliographystyle{plain}
+% --- Referências Bibliográficas (Estilo Springer LNCS) ---
+\bibliographystyle{splncs04}
 \bibliography{references}
 
 \end{document}
