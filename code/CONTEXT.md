@@ -3,7 +3,7 @@
 
 ## 📦 Estrutura de Projetos:
 - `mlp_viewer/`: Implementação de Multi-Layer Perceptron como grafo explícito com PyQt6 e demo Streamlit.
-- Projetos futuros da disciplina devem ser criados em subpastas isoladas com seu próprio `requirements.txt` e testes.
+- `tea_monitor/`: Sistema web de visão computacional (MediaPipe + Flask + Túnel HTTPS) para monitoramento em tempo real de estereotipias motoras (*stimming*) e sobrecarga sensorial em alunos com TEA (Disciplina de Tecnologias na Educação).
 
 ## ⚙️ Diretrizes para Agentes em `code/`:
 1. Mantenha os testes automatizados atualizados (`pytest`).
