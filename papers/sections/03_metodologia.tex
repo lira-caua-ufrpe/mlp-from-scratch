@@ -1,0 +1,17 @@
+﻿\section{Metodologia}
+\label{sec:metodologia}
+
+A metodologia adotada divide-se em duas frentes complementares: formulação teórica do modelo neural e implementação em código modular.
+
+\subsection{Modelo Matemático}
+Dado um vetor de entrada $\mathbf{x} \in \mathbb{R}^{d}$, a saída de um neurônio $j$ em uma camada $l$ é expressa por:
+\begin{equation}
+    z_j^{(l)} = \sum_{i} w_{ij}^{(l)} a_i^{(l-1)} + b_j^{(l)}
+\end{equation}
+\begin{equation}
+    a_j^{(l)} = \sigma\left(z_j^{(l)}\right)
+\end{equation}
+onde $w_{ij}^{(l)}$ denota o peso sináptico da conexão, $b_j^{(l)}$ representa o termo de viés (\textit{bias}) e $\sigma(\cdot)$ é a função de ativação não linear aplicada elemento a elemento.
+
+\subsection{Arquitetura em Grafo Explícito}
+Diferentemente de implementações baseadas exclusivamente em operações matriciais opacas, a arquitetura foi concebida como um grafo direcionado $G = (V, E)$, onde os vértices $V$ correspondem aos neurônios individuais e as arestas $E$ armazenam os pesos sinápticos e os respectivos gradientes acumulados em cada passo de otimização.

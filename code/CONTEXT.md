@@ -1,0 +1,11 @@
+﻿# Code Subtree Context
+> Diretório de implementações práticas, algoritmos e modelos da disciplina.
+
+## 📦 Estrutura de Projetos:
+- `mlp_viewer/`: Implementação de Multi-Layer Perceptron como grafo explícito com PyQt6 e demo Streamlit.
+- Projetos futuros da disciplina devem ser criados em subpastas isoladas com seu próprio `requirements.txt` e testes.
+
+## ⚙️ Diretrizes para Agentes em `code/`:
+1. Mantenha os testes automatizados atualizados (`pytest`).
+2. Exporte saídas gráficas e figuras de experimentos para `papers/figures/` quando relevante para o artigo.
+3. Não crie scripts avulsos na raiz de `code/`; use subpastas de projetos dedicadas.

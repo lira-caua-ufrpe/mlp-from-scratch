@@ -21,28 +21,37 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r code/mlp_viewer/requirements.txt
         pip install pytest
     
     - name: Run tests
       run: |
-        python -m pytest tests/ -v
+        python -m pytest code/mlp_viewer/tests/ -v
     
     - name: Check imports
       run: |
-        python -c "from src.mlp import MLP, ComputationalGraph; print('Imports OK')"
+        python -c "
+import sys
+sys.path.insert(0, 'code/mlp_viewer')
+from network import Network
+from loader import Loader
+print('Imports OK')
+"
     
     - name: Quick training test
       run: |
         python -c "
-        import numpy as np
-        from src.mlp import MLP
-        X = np.random.randn(20, 3)
-        y = np.random.randint(0, 2, (20, 1))
-        mlp = MLP([3, 8, 1], ['relu', 'sigmoid'], seed=42)
-        mlp.fit(X, y, epochs=5, verbose=False)
-        print('Quick training OK')
-        "
+import sys
+sys.path.insert(0, 'code/mlp_viewer')
+import numpy as np
+from network import Network
+X = np.random.randn(20, 3)
+y = np.random.randint(0, 2, (20, 1))
+mlp = Network([3, 8, 1])
+mlp.set_activation('sigmoid')
+mlp.fit(X, y, epochs=5, verbose=False)
+print('Quick training OK')
+"
 
   lint:
     runs-on: ubuntu-latest
@@ -55,6 +64,6 @@ jobs:
     - name: Install lint tools
       run: pip install flake8 black
     - name: Check formatting
-      run: black --check . --exclude="spec-kit-main|mlp-main|.venv|venv|__pycache__|.pytest_cache"
+      run: black --check code/mlp_viewer/ --exclude="spec-kit-main|mlp-main|.venv|venv|__pycache__|.pytest_cache"
     - name: Lint
-      run: flake8 . --max-line-length=100 --ignore=E501,W503 --exclude=spec-kit-main,mlp-main,.venv,venv,__pycache__,.pytest_cache
+      run: flake8 code/mlp_viewer/ --max-line-length=100 --ignore=E501,W503 --exclude=spec-kit-main,mlp-main,.venv,venv,__pycache__,.pytest_cache

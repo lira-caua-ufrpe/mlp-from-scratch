@@ -1,0 +1,23 @@
+﻿\section{Resultados e Discussão}
+\label{sec:experimentos}
+
+Esta seção detalha os experimentos empíricos conduzidos com a arquitetura proposta, avaliando convergência de função de perda, taxa de acerto (\textit{accuracy}) e estabilidade numérica.
+
+\subsection{Ambiente Experimental}
+Os experimentos foram executados utilizando o ambiente integrado em Python, com dados normalizados e divisão entre conjuntos de treino e validação.
+
+\begin{table}[ht]
+\centering
+\caption{Resumo dos hiperparâmetros utilizados nos ensaios experimentais.}
+\label{tab:hiperparametros}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parâmetro} & \textbf{Valor Adotado} \\ \midrule
+Taxa de Aprendizado ($\eta$) & 0.01 -- 0.1 \\
+Otimizador & Descida do Gradiente Estocástico (SGD) \\
+Função de Custo & Erro Quadrático Médio (MSE) / Entropia Cruzada \\
+Épocas de Treinamento & 500 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+Os resultados preliminares evidenciam a convergência monótona da perda e a consistência dos gradientes calculados através da estrutura em grafo.
