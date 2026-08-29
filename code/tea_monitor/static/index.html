@@ -35,10 +35,10 @@
 
         <!-- Navegação por Abas -->
         <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="tab-live">📹 Monitor ao Vivo</button>
-            <button class="nav-tab" data-tab="tab-timeline">📈 Linha do Tempo</button>
-            <button class="nav-tab" data-tab="tab-report">📑 Relatório Clínico</button>
-            <button class="nav-tab" data-tab="tab-settings">⚙️ Perfil</button>
+            <button class="nav-tab active" data-tab="tab-live">📹 Ao Vivo</button>
+            <button class="nav-tab" data-tab="tab-timeline">📈 Gráficos</button>
+            <button class="nav-tab" data-tab="tab-report">📑 Relatório</button>
+            <button class="nav-tab" data-tab="tab-settings">⚙️ Perfil Aluno</button>
         </nav>
 
         <!-- ABA 1: MONITOR AO VIVO -->
@@ -259,11 +259,21 @@
             </div>
         </div>
 
-        <!-- ABA 4: CONFIGURAÇÕES & PERFIL DO ALUNO -->
+        <!-- ABA 4: CONFIGURAÇÕES & PERFIL DO ALUNO (WINNIE DUNN) -->
         <div id="tab-settings" class="tab-content">
             <div class="settings-card">
-                <h3>⚙️ Perfil do Aluno & Sensibilidade</h3>
-                <p class="card-desc">Ajuste os parâmetros para personalizar a sensibilidade sensorial do estudante.</p>
+                <h3>⚙️ Perfil Sensorial do Aluno (Modelo de Winnie Dunn)</h3>
+                <p class="card-desc">Carregue um perfil pré-configurado da base clínica ou personalize os parâmetros.</p>
+
+                <div class="form-group">
+                    <label>Perfil Clínico Pré-Cadastrado:</label>
+                    <select id="presetProfileSelect" class="form-input">
+                        <option value="custom">-- Personalizado / Manual --</option>
+                        <option value="hiperacustico">🎧 Lucas (Hiperacústico - Sensível a Som > 68 dB)</option>
+                        <option value="buscador">🔄 Gabriel (Buscador Vestibular - Rocking e Movimento)</option>
+                        <option value="fotofobico">🙈 Mariana (Hipersensível Visual - Defesa Ocular)</option>
+                    </select>
+                </div>
 
                 <div class="form-group">
                     <label>Nome ou Identificador do Aluno:</label>
@@ -273,23 +283,39 @@
                 <div class="form-group">
                     <label>Sensibilidade Auditiva (Hiperacusia):</label>
                     <select id="cfgAuditorySens" class="form-input">
-                        <option value="1.3">Alta (Aciona defesa com ruídos menores)</option>
+                        <option value="1.4">Muito Alta (Sensível a ruídos leves)</option>
                         <option value="1.0" selected>Normal</option>
-                        <option value="0.7">Baixa</option>
+                        <option value="0.7">Baixa (Pouco reativo a som)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Sensibilidade Motora (Estereotipias):</label>
+                    <select id="cfgMotorSens" class="form-input">
+                        <option value="1.3">Alta (Captura movimentos leves)</option>
+                        <option value="1.0" selected>Normal</option>
+                        <option value="0.8">Baixa (Apenas movimentos intensos)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Limiar de Ruído Crítico da Sala (dB):</label>
                     <select id="cfgNoiseThreshold" class="form-input">
-                        <option value="70">70 dB (Muito Sensível / Silêncio Rigoroso)</option>
+                        <option value="68">68 dB (Hiperacusia - Alerta em conversas moderadas)</option>
                         <option value="78" selected>78 dB (Padrão para Sala de Aula)</option>
                         <option value="85">85 dB (Ambiente Aberto / Pátio)</option>
                     </select>
                 </div>
 
+                <div class="clinical-guidance-box" id="profileAccommodationsBox" style="margin-top: 8px;">
+                    <h4>📋 Acomodações Pedagógicas do Perfil</h4>
+                    <ul id="profileAccommodationsList">
+                        <li>Manter acomodações padrão e incentivar a participação na aula.</li>
+                    </ul>
+                </div>
+
                 <button id="btnSaveSettings" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                    💾 Salvar Configurações
+                    💾 Salvar Perfil do Aluno
                 </button>
             </div>
         </div>

@@ -1,6 +1,6 @@
 ﻿/**
  * MediaPipe Camera Pipeline & Real-Time Orchestrator
- * Multimodal: Pose + FaceMesh + Web Audio Decibel Meter
+ * Multimodal: Pose + FaceMesh + Web Audio Decibel Meter + Winnie Dunn Sensory Profiles
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnClearLog = document.getElementById("btnClearLog");
     const btnExportReport = document.getElementById("btnExportReport");
     const btnSaveSettings = document.getElementById("btnSaveSettings");
+    const presetProfileSelect = document.getElementById("presetProfileSelect");
     const startOverlay = document.getElementById("startOverlay");
 
     // Status & Badges
@@ -52,6 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const overallStressScore = document.getElementById("overallStressScore");
     const eventList = document.getElementById("eventList");
 
+    // Settings & Profile Elements
+    const cfgStudentName = document.getElementById("cfgStudentName");
+    const cfgAuditorySens = document.getElementById("cfgAuditorySens");
+    const cfgMotorSens = document.getElementById("cfgMotorSens");
+    const cfgNoiseThreshold = document.getElementById("cfgNoiseThreshold");
+    const profileAccommodationsList = document.getElementById("profileAccommodationsList");
+
     // Clinical Report Elements
     const cntFlapping = document.getElementById("cntFlapping");
     const cntRocking = document.getElementById("cntRocking");
@@ -77,6 +85,43 @@ document.addEventListener("DOMContentLoaded", () => {
     let showFace = true;
     let audioAlertEnabled = false;
     let currentStream = null;
+
+    // Base de Perfis de Winnie Dunn
+    const SENSORY_PRESETS = {
+        hiperacustico: {
+            name: "Lucas (Hiperacústico)",
+            auditorySens: "1.4",
+            motorSens: "1.0",
+            noiseDb: "68",
+            accommodations: [
+                "Oferecer fone abafador de ruídos antes de atividades barulhentas",
+                "Posicionar a carteira longe da porta e de ventiladores",
+                "Avisar previamente antes de tocar o sinal de intervalo"
+            ]
+        },
+        buscador: {
+            name: "Gabriel (Buscador Vestibular)",
+            auditorySens: "1.0",
+            motorSens: "1.3",
+            noiseDb: "82",
+            accommodations: [
+                "Permitir balanço de tronco livre (autorregulação de foco)",
+                "Propor pausas motoras ativas a cada 30 minutos",
+                "Disponibilizar almofada de ar proprioceptiva na cadeira"
+            ]
+        },
+        fotofobico: {
+            name: "Mariana (Hipersensível Visual)",
+            auditorySens: "1.0",
+            motorSens: "1.0",
+            noiseDb: "78",
+            accommodations: [
+                "Reduzir luminosidade de telas e evitar lâmpadas fluorescentes diretas",
+                "Permitir uso de óculos com filtro suave ou boné",
+                "Fornecer material impresso em papel fosco sem brilho"
+            ]
+        }
+    };
 
     // Web Audio Analyser para Decibéis da Sala
     let micAudioCtx = null;
@@ -147,7 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
             sum += val * val;
         }
         const rms = Math.sqrt(sum / audioDataArray.length);
-        // SPL Aproximado em dB calibrado para microfones comuns
         currentDecibels = Math.max(38, Math.min(100, Math.round(20 * Math.log10(rms + 1e-4) + 98)));
         return currentDecibels;
     }
@@ -198,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Inicia a Câmera e Microfone
+     * Inicia Câmera e Microfone
      */
     async function startCamera() {
         btnStartCamera.disabled = true;
@@ -214,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
             { video: { facingMode: { ideal: facingMode }, width: { ideal: 640 }, height: { ideal: 480 } }, audio: true },
             { video: { facingMode: facingMode }, audio: true },
             { video: true, audio: true },
-            { video: true, audio: false } // Fallback se o microfone for negado
+            { video: true, audio: false }
         ];
 
         let stream = null;
@@ -241,7 +285,6 @@ document.addEventListener("DOMContentLoaded", () => {
         currentStream = stream;
         videoElement.srcObject = stream;
 
-        // Configura análise do microfone
         setupMicrophoneAnalysis(stream);
 
         try {
@@ -266,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Loop Principal de Processamento Multimodal
+     * Loop Principal de Processamento
      */
     async function processLoop() {
         if (!isRunning) return;
@@ -279,7 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             renderCanvas();
 
-            // Mede decibéis atuais do ambiente
             const db = sampleCurrentDecibels();
 
             if (!isProcessing) {
@@ -358,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Renderiza o Gráfico de Estresse & Ruído
+     * Renderiza o Gráfico de Estresse
      */
     function drawTimelineChart(timeline) {
         if (!timelineCtx || !timeline || timeline.length === 0) return;
@@ -368,7 +410,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         timelineCtx.clearRect(0, 0, w, h);
 
-        // Linhas de Grade
         timelineCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
         timelineCtx.lineWidth = 1;
         for (let y = 0; y <= h; y += 40) {
@@ -378,7 +419,6 @@ document.addEventListener("DOMContentLoaded", () => {
             timelineCtx.stroke();
         }
 
-        // Linha Crítica de Sobrecarga (70%)
         const critY = h - (0.7 * h);
         timelineCtx.strokeStyle = "rgba(239, 68, 68, 0.5)";
         timelineCtx.setLineDash([4, 4]);
@@ -388,7 +428,6 @@ document.addEventListener("DOMContentLoaded", () => {
         timelineCtx.stroke();
         timelineCtx.setLineDash([]);
 
-        // Curva de Estresse (Azul)
         timelineCtx.beginPath();
         const step = w / Math.max(1, timeline.length - 1);
 
@@ -403,7 +442,6 @@ document.addEventListener("DOMContentLoaded", () => {
         timelineCtx.lineWidth = 2.5;
         timelineCtx.stroke();
 
-        // Gradiente sob a curva
         timelineCtx.lineTo((timeline.length - 1) * step, h);
         timelineCtx.lineTo(0, h);
         const grad = timelineCtx.createLinearGradient(0, 0, 0, h);
@@ -414,12 +452,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Atualiza a Interface com Métricas Multimodais
+     * Atualiza a Interface
      */
     function updateUI(analysis) {
         if (!analysis) return;
 
-        // Banner e Estágio
         if (alertBanner) alertBanner.className = `alert-banner alert-${analysis.severity}`;
         if (alertStageName) alertStageName.textContent = analysis.stageName;
         if (alertDesc) alertDesc.textContent = analysis.desc;
@@ -432,18 +469,19 @@ document.addEventListener("DOMContentLoaded", () => {
             else alertIcon.textContent = "🟢";
         }
 
-        // HUD Ruído & Decibéis
+        // HUD Ruído
         const db = analysis.ambientDb || 50;
         if (noiseDb) noiseDb.textContent = db;
         if (hudNoiseText) hudNoiseText.textContent = `${db} dB`;
         if (hudNoiseBar) {
             const pct = Math.min(100, Math.max(0, ((db - 40) / 50) * 100));
             hudNoiseBar.style.width = `${pct}%`;
-            hudNoiseBar.style.backgroundColor = db >= 78 ? "var(--accent-red)" : db >= 68 ? "var(--accent-yellow)" : "var(--accent-green)";
+            hudNoiseBar.style.backgroundColor = db >= (detector.profile.noiseThresholdCriticalDb || 78) ? "var(--accent-red)" : db >= 68 ? "var(--accent-yellow)" : "var(--accent-green)";
         }
         if (noiseStatus) {
-            noiseStatus.textContent = db >= 78 ? "Muito Alto" : db >= 68 ? "Moderado" : "Silencioso";
-            noiseStatus.style.color = db >= 78 ? "var(--accent-red)" : db >= 68 ? "var(--accent-yellow)" : "var(--accent-green)";
+            const crit = detector.profile.noiseThresholdCriticalDb || 78;
+            noiseStatus.textContent = db >= crit ? "Muito Alto" : db >= 68 ? "Moderado" : "Silencioso";
+            noiseStatus.style.color = db >= crit ? "var(--accent-red)" : db >= 68 ? "var(--accent-yellow)" : "var(--accent-green)";
         }
 
         // HUD Bars
@@ -464,7 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
             hudRockingBar.style.backgroundColor = rockPct > 60 ? "var(--accent-yellow)" : "var(--accent-blue)";
         }
 
-        // Metrics Grid Cards
+        // Metrics Grid
         if (flappingScore) flappingScore.textContent = flapPct;
         if (flappingHz && analysis.flapping) flappingHz.textContent = `${analysis.flapping.hz} Hz`;
 
@@ -578,6 +616,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Seletor de Perfil Pré-Cadastrado (Winnie Dunn)
+    if (presetProfileSelect) {
+        presetProfileSelect.addEventListener("change", (e) => {
+            const key = e.target.value;
+            if (SENSORY_PRESETS[key]) {
+                const p = SENSORY_PRESETS[key];
+                if (cfgStudentName) cfgStudentName.value = p.name;
+                if (cfgAuditorySens) cfgAuditorySens.value = p.auditorySens;
+                if (cfgMotorSens) cfgMotorSens.value = p.motorSens;
+                if (cfgNoiseThreshold) cfgNoiseThreshold.value = p.noiseDb;
+                if (profileAccommodationsList) {
+                    profileAccommodationsList.innerHTML = p.accommodations.map(a => `<li>${a}</li>`).join("");
+                }
+            }
+        });
+    }
+
     // Exportar Relatório Clínico
     if (btnExportReport && detector) {
         btnExportReport.addEventListener("click", () => {
@@ -596,16 +651,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Salvar Configurações
     if (btnSaveSettings && detector) {
         btnSaveSettings.addEventListener("click", () => {
-            const name = document.getElementById("cfgStudentName").value || "Aluno";
-            const audSens = parseFloat(document.getElementById("cfgAuditorySens").value) || 1.0;
-            const noiseThresh = parseFloat(document.getElementById("cfgNoiseThreshold").value) || 78.0;
+            const name = cfgStudentName.value || "Aluno";
+            const audSens = parseFloat(cfgAuditorySens.value) || 1.0;
+            const motSens = parseFloat(cfgMotorSens.value) || 1.0;
+            const noiseThresh = parseFloat(cfgNoiseThreshold.value) || 78.0;
 
             detector.setProfile({
                 studentName: name,
                 auditorySensitivity: audSens,
+                motorSensitivity: motSens,
                 noiseThresholdCriticalDb: noiseThresh
             });
-            alert("Configurações acústicas e sensoriais salvas com sucesso!");
+            alert(`Perfil de [${name}] salvo com sucesso! Limiar crítico de ruído: ${noiseThresh} dB.`);
         });
     }
 
