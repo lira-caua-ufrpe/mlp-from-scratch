@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TEA Monitor - Visão Computacional na Educação</title>
+    <title>TEA Monitor Pro - Plataforma Educacional & Clínica</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 
     <!-- MediaPipe CDNs -->
@@ -19,13 +19,13 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header / Barra Superior -->
+        <!-- Header Principal -->
         <header class="app-header">
             <div class="brand">
                 <div class="logo-icon">🧠</div>
                 <div>
-                    <h1>TEA Monitor <span class="badge-edu">Educação Inclusiva</span></h1>
-                    <p class="subtitle">Monitoramento de Estereotipias e Sobrecarga Sensorial</p>
+                    <h1>TEA Monitor <span class="badge-pro">Clínico & Escolar</span></h1>
+                    <p class="subtitle">Integração: Professor, Escola e Psicólogo</p>
                 </div>
             </div>
             <div class="header-status">
@@ -33,117 +33,264 @@
             </div>
         </header>
 
-        <!-- Banner de Alerta Ativo -->
-        <div id="alertBanner" class="alert-banner alert-normal">
-            <span id="alertIcon" class="alert-icon">🟢</span>
-            <div class="alert-content">
-                <strong id="alertTitle">Estado Estável</strong>
-                <span id="alertDesc">Nenhum sinal crítico detectado no momento.</span>
+        <!-- Navegação por Abas -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="tab-live">📹 Monitor ao Vivo</button>
+            <button class="nav-tab" data-tab="tab-timeline">📈 Linha do Tempo</button>
+            <button class="nav-tab" data-tab="tab-report">📑 Relatório Psicólogo</button>
+            <button class="nav-tab" data-tab="tab-settings">⚙️ Perfil</button>
+        </nav>
+
+        <!-- ABA 1: MONITOR AO VIVO -->
+        <div id="tab-live" class="tab-content active">
+            <!-- Banner de Estágio Clínico Ativo -->
+            <div id="alertBanner" class="alert-banner alert-normal">
+                <span id="alertIcon" class="alert-icon">🟢</span>
+                <div class="alert-content">
+                    <strong id="alertStageName">Estágio 1: Calmo & Regulado</strong>
+                    <span id="alertDesc">Nenhum sinal crítico detectado no momento.</span>
+                </div>
             </div>
+
+            <!-- Card de Orientação Pedagógica Imediata para o Professor -->
+            <div class="teacher-action-card">
+                <div class="action-header">
+                    <span>💡 Orientação Pedagógica Imediata</span>
+                </div>
+                <p id="teacherRecommendation">Manter o ritmo habitual da aula e incentivar a participação.</p>
+            </div>
+
+            <!-- Viewport de Câmera -->
+            <main class="main-viewport">
+                <div class="viewport-wrapper">
+                    <video id="videoElement" playsinline webkit-playsinline muted autoplay></video>
+                    <canvas id="outputCanvas"></canvas>
+
+                    <!-- HUD com Barras Rápidas no Vídeo -->
+                    <div class="video-overlay-hud">
+                        <div class="hud-metric">
+                            <span class="hud-label">Flapping de Mãos</span>
+                            <div class="progress-bar"><div id="hudFlappingBar" class="progress-fill" style="width: 0%"></div></div>
+                        </div>
+                        <div class="hud-metric">
+                            <span class="hud-label">Defesa Auditiva</span>
+                            <div class="progress-bar"><div id="hudSensoryBar" class="progress-fill" style="width: 0%"></div></div>
+                        </div>
+                        <div class="hud-metric">
+                            <span class="hud-label">Balanço de Tronco</span>
+                            <div class="progress-bar"><div id="hudRockingBar" class="progress-fill" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Overlay de Inicialização -->
+                    <div id="startOverlay" class="start-overlay">
+                        <div class="start-card">
+                            <div class="start-icon">📹</div>
+                            <h3>Iniciar Monitoramento</h3>
+                            <p>Processamento local de IA com estimativa de pose e malha facial a 30 FPS.</p>
+                            <button id="btnStartCamera" class="btn btn-primary btn-large">
+                                ▶️ Iniciar Câmera do Celular
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles Rápidos -->
+                <div class="control-bar">
+                    <button id="btnFlipCamera" class="btn btn-secondary" title="Trocar Câmera Frontal/Traseira">
+                        🔄 Câmera
+                    </button>
+                    <button id="btnTogglePose" class="btn btn-toggle active">
+                        🦴 Esqueleto
+                    </button>
+                    <button id="btnToggleFace" class="btn btn-toggle active">
+                        😊 FaceMesh
+                    </button>
+                    <button id="btnToggleAudio" class="btn btn-toggle">
+                        🔔 Alarme
+                    </button>
+                </div>
+            </main>
+
+            <!-- Grid de Métricas Biomecânicas -->
+            <section class="dashboard-section">
+                <div class="section-header">
+                    <h2>📊 Telemetria Biomecânica</h2>
+                    <span class="fps-counter">FPS: <span id="fpsValue">0</span></span>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>Flapping de Mãos</span>
+                            <span id="flappingHz" class="metric-badge">0.0 Hz</span>
+                        </div>
+                        <div class="metric-value"><span id="flappingScore">0</span>%</div>
+                        <small>Oscilação rápida de punhos</small>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>Sobrecarga Auditiva</span>
+                            <span id="sensoryStatus" class="metric-badge">Normal</span>
+                        </div>
+                        <div class="metric-value"><span id="sensoryScore">0</span>%</div>
+                        <small>Mãos nos ouvidos / cabeça</small>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>Balanço de Tronco</span>
+                            <span id="rockingStatus" class="metric-badge">Estável</span>
+                        </div>
+                        <div class="metric-value"><span id="rockingScore">0</span>%</div>
+                        <small>Oscilação rítmica corporal</small>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>Atenção Visual</span>
+                            <span id="gazeStatus" class="metric-badge">Frontal</span>
+                        </div>
+                        <div class="metric-value"><span id="gazeScore">100</span>%</div>
+                        <small>Direcionamento do olhar/face</small>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>Movimento de Cabeça</span>
+                            <span id="noddingStatus" class="metric-badge">Estável</span>
+                        </div>
+                        <div class="metric-value"><span id="noddingScore">0</span>%</div>
+                        <small>Head Nodding / Tilting</small>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>Índice Geral de Estresse</span>
+                            <span class="metric-badge">Geral</span>
+                        </div>
+                        <div class="metric-value" style="color: var(--accent-orange);"><span id="overallStressScore">0</span>%</div>
+                        <small>Combinação ponderada</small>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <!-- Área Central de Câmera e Canvas -->
-        <main class="main-viewport">
-            <div class="viewport-wrapper">
-                <video id="videoElement" playsinline webkit-playsinline muted></video>
-                <canvas id="outputCanvas"></canvas>
-
-                <!-- Overlay de HUD com métricas rápidas no vídeo -->
-                <div class="video-overlay-hud">
-                    <div class="hud-metric">
-                        <span class="hud-label">Flapping</span>
-                        <div class="progress-bar"><div id="hudFlappingBar" class="progress-fill" style="width: 0%"></div></div>
-                    </div>
-                    <div class="hud-metric">
-                        <span class="hud-label">Sensorial (Ouvidos)</span>
-                        <div class="progress-bar"><div id="hudSensoryBar" class="progress-fill" style="width: 0%"></div></div>
-                    </div>
-                    <div class="hud-metric">
-                        <span class="hud-label">Balanço (Rocking)</span>
-                        <div class="progress-bar"><div id="hudRockingBar" class="progress-fill" style="width: 0%"></div></div>
-                    </div>
-                </div>
-
-                <!-- Botão de Iniciar sobre o vídeo -->
-                <div id="startOverlay" class="start-overlay">
-                    <div class="start-card">
-                        <div class="start-icon">📹</div>
-                        <h3>Ativar Monitoramento</h3>
-                        <p>O processamento de visão computacional ocorre em tempo real no seu dispositivo.</p>
-                        <button id="btnStartCamera" class="btn btn-primary btn-large">
-                            ▶️ Iniciar Câmera do Celular
-                        </button>
-                    </div>
+        <!-- ABA 2: LINHA DO TEMPO & GRÁFICO CONTÍNUO -->
+        <div id="tab-timeline" class="tab-content">
+            <div class="card-timeline">
+                <h3>📈 Curva de Nível de Estresse (Últimos 60 segundos)</h3>
+                <p class="card-desc">Visualização contínua para identificação de picos de sobrecarga.</p>
+                <div class="chart-wrapper">
+                    <canvas id="timelineChart" width="500" height="200"></canvas>
                 </div>
             </div>
 
-            <!-- Painel de Controles Rápidos -->
-            <div class="control-bar">
-                <button id="btnFlipCamera" class="btn btn-secondary" title="Alternar Câmera Frontal / Traseira">
-                    🔄 Trocar Câmera
-                </button>
-                <button id="btnTogglePose" class="btn btn-toggle active">
-                    🦴 Esqueleto
-                </button>
-                <button id="btnToggleFace" class="btn btn-toggle active">
-                    😊 FaceMesh
-                </button>
-                <button id="btnToggleAudio" class="btn btn-toggle">
-                    🔔 Alerta Sonoro
-                </button>
-            </div>
-        </main>
-
-        <!-- Painel de Telemetria e Histórico para o Professor -->
-        <section class="dashboard-section">
-            <div class="section-header">
-                <h2>📊 Telemetria Biomecânica</h2>
-                <span class="fps-counter">FPS: <span id="fpsValue">0</span></span>
-            </div>
-
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span>Oscilação dos Pulsos</span>
-                        <span id="flappingHz" class="metric-badge">0.0 Hz</span>
-                    </div>
-                    <div class="metric-value"><span id="flappingScore">0</span>%</div>
-                    <small>Frequência vertical/horizontal de flapping</small>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span>Índice de Sobrecarga</span>
-                        <span id="sensoryStatus" class="metric-badge">Normal</span>
-                    </div>
-                    <div class="metric-value"><span id="sensoryScore">0</span>%</div>
-                    <small>Proximidade das mãos aos ouvidos/cabeça</small>
-                </div>
-
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span>Balanço do Tronco</span>
-                        <span id="rockingStatus" class="metric-badge">Estável</span>
-                    </div>
-                    <div class="metric-value"><span id="rockingScore">0</span>%</div>
-                    <small>Oscilação periódica do centro do corpo</small>
-                </div>
-            </div>
-
-            <!-- Histórico de Eventos -->
             <div class="history-card">
                 <div class="history-header">
-                    <h3>📋 Registro de Incidentes em Aula</h3>
+                    <h3>📋 Registro Detalhado de Incidentes</h3>
                     <button id="btnClearLog" class="btn-link">Limpar</button>
                 </div>
                 <div id="eventList" class="event-list">
-                    <div class="empty-state">Nenhum evento registrado ainda. Inicie a câmera para monitorar.</div>
+                    <div class="empty-state">Nenhum evento registrado ainda. Inicie o monitoramento.</div>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <!-- ABA 3: RELATÓRIO CLÍNICO & ABA PARA O PSICÓLOGO -->
+        <div id="tab-report" class="tab-content">
+            <div class="clinical-report-card">
+                <div class="report-header">
+                    <div>
+                        <h2>📑 Relatório de Observação Comportamental</h2>
+                        <p class="card-desc">Documento para diálogo entre Escola e Equipe Terapêutica (ABA / TCC)</p>
+                    </div>
+                    <button id="btnExportReport" class="btn btn-primary">
+                        📥 Exportar PDF / JSON
+                    </button>
+                </div>
+
+                <div class="report-summary-box">
+                    <strong>Resumo da Sessão:</strong>
+                    <p id="reportSummaryText">Aguardando dados da sessão de monitoramento...</p>
+                </div>
+
+                <div class="behavior-counters-grid">
+                    <div class="counter-item">
+                        <span class="counter-num" id="cntFlapping">0</span>
+                        <span class="counter-lbl">Flapping de Mãos</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-num" id="cntRocking">0</span>
+                        <span class="counter-lbl">Balanço de Tronco</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-num" id="cntAuditory">0</span>
+                        <span class="counter-lbl">Defesa Auditiva</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-num" id="cntVisual">0</span>
+                        <span class="counter-lbl">Defesa Visual</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-num" id="cntNodding">0</span>
+                        <span class="counter-lbl">Head Nodding</span>
+                    </div>
+                    <div class="counter-item">
+                        <span class="counter-num" id="cntFreeze">0</span>
+                        <span class="counter-lbl">Shutdown / Freeze</span>
+                    </div>
+                </div>
+
+                <div class="clinical-guidance-box">
+                    <h4>📋 Modelo ABC de Análise Comportamental</h4>
+                    <ul>
+                        <li><strong>A (Antecedente):</strong> Atividade em sala, nível de ruído, transição de aula.</li>
+                        <li><strong>B (Comportamento):</strong> Estereotipia ou defesa registrada pelo sistema com timestamp.</li>
+                        <li><strong>C (Consequência):</strong> Ação pedagógica recomendada e resposta do aluno.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 4: CONFIGURAÇÕES & PERFIL DO ALUNO -->
+        <div id="tab-settings" class="tab-content">
+            <div class="settings-card">
+                <h3>⚙️ Perfil do Aluno & Sensibilidade</h3>
+                <p class="card-desc">Ajuste os parâmetros para personalizar a sensibilidade ao perfil sensorial do estudante.</p>
+
+                <div class="form-group">
+                    <label>Nome ou Identificador do Aluno:</label>
+                    <input type="text" id="cfgStudentName" class="form-input" value="Aluno 01">
+                </div>
+
+                <div class="form-group">
+                    <label>Sensibilidade Auditiva (Hiperacusia):</label>
+                    <select id="cfgAuditorySens" class="form-input">
+                        <option value="1.3">Alta (Aciona defesa mais rápido)</option>
+                        <option value="1.0" selected>Normal</option>
+                        <option value="0.7">Baixa</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Sensibilidade Motora (Estereotipias):</label>
+                    <select id="cfgMotorSens" class="form-input">
+                        <option value="1.3">Alta (Captura movimentos leves)</option>
+                        <option value="1.0" selected>Normal</option>
+                        <option value="0.7">Baixa (Apenas movimentos intensos)</option>
+                    </select>
+                </div>
+
+                <button id="btnSaveSettings" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                    💾 Salvar Configurações
+                </button>
+            </div>
+        </div>
 
         <footer class="app-footer">
-            <p>Projeto Desenvolvido para a Disciplina de <strong>Tecnologias na Educação</strong></p>
+            <p>TEA Monitor Pro — Tecnologias na Educação & Visão Computacional</p>
         </footer>
     </div>
 

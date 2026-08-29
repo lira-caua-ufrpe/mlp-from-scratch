@@ -1,26 +1,33 @@
 ﻿/**
  * MediaPipe Camera Pipeline & Real-Time Orchestrator
- * Bulletproof Mobile & Desktop Support
+ * Clinical & Educational Multi-Tab Interface
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Elementos do DOM
+    // DOM Elements - Camera & Canvas
     const videoElement = document.getElementById("videoElement");
     const outputCanvas = document.getElementById("outputCanvas");
     const canvasCtx = outputCanvas ? outputCanvas.getContext("2d") : null;
+    const timelineCanvas = document.getElementById("timelineChart");
+    const timelineCtx = timelineCanvas ? timelineCanvas.getContext("2d") : null;
 
+    // Controls & Buttons
     const btnStartCamera = document.getElementById("btnStartCamera");
     const btnFlipCamera = document.getElementById("btnFlipCamera");
     const btnTogglePose = document.getElementById("btnTogglePose");
     const btnToggleFace = document.getElementById("btnToggleFace");
     const btnToggleAudio = document.getElementById("btnToggleAudio");
     const btnClearLog = document.getElementById("btnClearLog");
+    const btnExportReport = document.getElementById("btnExportReport");
+    const btnSaveSettings = document.getElementById("btnSaveSettings");
     const startOverlay = document.getElementById("startOverlay");
 
+    // Status & Badges
     const alertBanner = document.getElementById("alertBanner");
     const alertIcon = document.getElementById("alertIcon");
-    const alertTitle = document.getElementById("alertTitle");
+    const alertStageName = document.getElementById("alertStageName");
     const alertDesc = document.getElementById("alertDesc");
+    const teacherRecommendation = document.getElementById("teacherRecommendation");
     const connectionBadge = document.getElementById("connectionBadge");
     const fpsValue = document.getElementById("fpsValue");
 
@@ -29,27 +36,41 @@ document.addEventListener("DOMContentLoaded", () => {
     const hudSensoryBar = document.getElementById("hudSensoryBar");
     const hudRockingBar = document.getElementById("hudRockingBar");
 
-    // Metrics Card Elements
+    // Metrics Cards
     const flappingScore = document.getElementById("flappingScore");
     const flappingHz = document.getElementById("flappingHz");
     const sensoryScore = document.getElementById("sensoryScore");
     const sensoryStatus = document.getElementById("sensoryStatus");
     const rockingScore = document.getElementById("rockingScore");
     const rockingStatus = document.getElementById("rockingStatus");
+    const gazeScore = document.getElementById("gazeScore");
+    const gazeStatus = document.getElementById("gazeStatus");
+    const noddingScore = document.getElementById("noddingScore");
+    const noddingStatus = document.getElementById("noddingStatus");
+    const overallStressScore = document.getElementById("overallStressScore");
     const eventList = document.getElementById("eventList");
 
-    // Configuração do vídeo para mobile (iOS / Android)
+    // Clinical Report Elements
+    const cntFlapping = document.getElementById("cntFlapping");
+    const cntRocking = document.getElementById("cntRocking");
+    const cntAuditory = document.getElementById("cntAuditory");
+    const cntVisual = document.getElementById("cntVisual");
+    const cntNodding = document.getElementById("cntNodding");
+    const cntFreeze = document.getElementById("cntFreeze");
+    const reportSummaryText = document.getElementById("reportSummaryText");
+
+    // Mobile video setup
     videoElement.setAttribute("playsinline", "");
     videoElement.setAttribute("webkit-playsinline", "");
     videoElement.muted = true;
     videoElement.autoplay = true;
 
-    // Instância do Detector de Estereotipias
+    // Detector Instance
     const detector = window.StimmingDetector ? new window.StimmingDetector() : null;
 
     let isRunning = false;
     let isProcessing = false;
-    let facingMode = "user"; // 'user' (frontal) ou 'environment' (traseira)
+    let facingMode = "user";
     let showPose = true;
     let showFace = true;
     let audioAlertEnabled = false;
@@ -59,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let frameCount = 0;
     let lastFpsTime = performance.now();
 
-    // Modelos MediaPipe
+    // MediaPipe Models
     let poseModel = null;
     let faceModel = null;
     let latestPoseLandmarks = null;
@@ -90,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Inicializa os Modelos MediaPipe de forma segura
+     * Inicializa os Modelos MediaPipe
      */
     async function initMediaPipeModels() {
         try {
@@ -99,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
                 });
                 poseModel.setOptions({
-                    modelComplexity: 0, // 0 = mais rápido para mobile
+                    modelComplexity: 0,
                     smoothLandmarks: true,
                     minDetectionConfidence: 0.5,
                     minTrackingConfidence: 0.5
@@ -130,12 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 connectionBadge.className = "status-badge status-ready";
             }
         } catch (e) {
-            console.warn("Aviso ao carregar MediaPipe, continuando com câmera:", e);
+            console.warn("Aviso MediaPipe:", e);
         }
     }
 
     /**
-     * Inicia a Câmera do Dispositivo com fallback robusto
+     * Inicia a Câmera
      */
     async function startCamera() {
         btnStartCamera.disabled = true;
@@ -143,11 +164,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (connectionBadge) connectionBadge.textContent = "Acessando câmera...";
 
         if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
+            currentStream.getTracks().forEach(t => t.stop());
             currentStream = null;
         }
 
-        // Tenta constraints ideais e faz fallback progressivo
         const constraintTiers = [
             { video: { facingMode: { ideal: facingMode }, width: { ideal: 640 }, height: { ideal: 480 } }, audio: false },
             { video: { facingMode: facingMode }, audio: false },
@@ -157,21 +177,20 @@ document.addEventListener("DOMContentLoaded", () => {
         let stream = null;
         let lastErr = null;
 
-        for (const constraints of constraintTiers) {
+        for (const c of constraintTiers) {
             try {
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                stream = await navigator.mediaDevices.getUserMedia(c);
                 if (stream) break;
             } catch (err) {
                 lastErr = err;
-                console.warn("Tentativa de câmera falhou, tentando fallback:", err);
             }
         }
 
         if (!stream) {
             btnStartCamera.disabled = false;
             btnStartCamera.textContent = "▶️ Tentar Novamente";
-            const errMsg = lastErr ? (lastErr.name || lastErr.message) : "Desconhecido";
-            alert(`Não foi possível acessar a câmera (${errMsg}).\n\nCertifique-se de autorizar a câmera nas configurações do navegador.`);
+            const msg = lastErr ? (lastErr.name || lastErr.message) : "Desconhecido";
+            alert(`Não foi possível acessar a câmera (${msg}).\n\nAutorize a câmera nas permissões do navegador.`);
             if (connectionBadge) connectionBadge.textContent = "Permissão Negada";
             return;
         }
@@ -182,14 +201,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             await videoElement.play();
         } catch (playErr) {
-            console.warn("Aguardando evento de play:", playErr);
+            console.warn("Play:", playErr);
         }
 
-        // Configura dimensões do canvas
-        const w = videoElement.videoWidth || 640;
-        const h = videoElement.videoHeight || 480;
-        outputCanvas.width = w;
-        outputCanvas.height = h;
+        outputCanvas.width = videoElement.videoWidth || 640;
+        outputCanvas.height = videoElement.videoHeight || 480;
 
         startOverlay.style.display = "none";
         isRunning = true;
@@ -198,31 +214,25 @@ document.addEventListener("DOMContentLoaded", () => {
             connectionBadge.className = "status-badge status-monitoring";
         }
 
-        // Garante que o modelo começou a carregar se ainda não iniciou
-        if (!modelsReady) {
-            initMediaPipeModels();
-        }
+        if (!modelsReady) initMediaPipeModels();
 
         requestAnimationFrame(processLoop);
     }
 
     /**
-     * Loop Principal de Processamento e Renderização
+     * Loop Principal
      */
     async function processLoop() {
         if (!isRunning) return;
 
         if (videoElement.readyState >= 2) {
-            // 1. Atualiza dimensões se mudaram
             if (outputCanvas.width !== videoElement.videoWidth && videoElement.videoWidth > 0) {
                 outputCanvas.width = videoElement.videoWidth;
                 outputCanvas.height = videoElement.videoHeight;
             }
 
-            // 2. Renderiza no Canvas primeiro para feed imediato
             renderCanvas();
 
-            // 3. Processa IA se não estiver sobrecarregado
             if (!isProcessing) {
                 isProcessing = true;
                 try {
@@ -232,6 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (detector) {
                         const analysis = detector.processFrame(latestPoseLandmarks, latestFaceLandmarks);
                         updateUI(analysis);
+                        drawTimelineChart(detector.timelineHistory);
 
                         if (analysis.shouldTriggerEvent && analysis.eventPayload) {
                             logEventToBackend(analysis.eventPayload);
@@ -239,13 +250,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
                 } catch (procErr) {
-                    console.warn("Erro no processamento do frame MediaPipe:", procErr);
+                    console.warn("Proc error:", procErr);
                 } finally {
                     isProcessing = false;
                 }
             }
 
-            // FPS
+            // FPS Counter
             frameCount++;
             const now = performance.now();
             if (now - lastFpsTime >= 1000) {
@@ -259,23 +270,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Renderiza o vídeo e os esqueletos/malhas no Canvas
+     * Renderiza o Vídeo e a IA no Canvas
      */
     function renderCanvas() {
         if (!canvasCtx) return;
         canvasCtx.save();
         canvasCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
 
-        // Se for frontal, espelha
         if (facingMode === "user") {
             canvasCtx.scale(-1, 1);
             canvasCtx.translate(-outputCanvas.width, 0);
         }
 
-        // Imagem da câmera
         canvasCtx.drawImage(videoElement, 0, 0, outputCanvas.width, outputCanvas.height);
 
-        // Esqueleto Pose
+        // Pose Skeleton
         if (showPose && latestPoseLandmarks && window.drawConnectors && window.drawLandmarks && typeof POSE_CONNECTIONS !== "undefined") {
             drawConnectors(canvasCtx, latestPoseLandmarks, POSE_CONNECTIONS, {
                 color: "#38bdf8",
@@ -288,7 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // Malha Facial
+        // FaceMesh
         if (showFace && latestFaceLandmarks && window.drawConnectors && typeof FACEMESH_TESSELATION !== "undefined") {
             drawConnectors(canvasCtx, latestFaceLandmarks, FACEMESH_TESSELATION, {
                 color: "rgba(255, 255, 255, 0.15)",
@@ -300,26 +309,83 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Atualiza o HUD e os Cards com as Métricas
+     * Renderiza o Gráfico Contínuo de Estresse em Tempo Real
+     */
+    function drawTimelineChart(timeline) {
+        if (!timelineCtx || !timeline || timeline.length === 0) return;
+
+        const w = timelineCanvas.width;
+        const h = timelineCanvas.height;
+
+        timelineCtx.clearRect(0, 0, w, h);
+
+        // Linhas de Grade
+        timelineCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        timelineCtx.lineWidth = 1;
+        for (let y = 0; y <= h; y += 40) {
+            timelineCtx.beginPath();
+            timelineCtx.moveTo(0, y);
+            timelineCtx.lineTo(w, y);
+            timelineCtx.stroke();
+        }
+
+        // Linha Crítica de Sobrecarga (70%)
+        const critY = h - (0.7 * h);
+        timelineCtx.strokeStyle = "rgba(239, 68, 68, 0.5)";
+        timelineCtx.setLineDash([4, 4]);
+        timelineCtx.beginPath();
+        timelineCtx.moveTo(0, critY);
+        timelineCtx.lineTo(w, critY);
+        timelineCtx.stroke();
+        timelineCtx.setLineDash([]);
+
+        // Desenha a Curva de Estresse
+        timelineCtx.beginPath();
+        const step = w / Math.max(1, timeline.length - 1);
+
+        for (let i = 0; i < timeline.length; i++) {
+            const x = i * step;
+            const y = h - (timeline[i].stress / 100) * (h - 20) - 10;
+            if (i === 0) timelineCtx.moveTo(x, y);
+            else timelineCtx.lineTo(x, y);
+        }
+
+        timelineCtx.strokeStyle = "#38bdf8";
+        timelineCtx.lineWidth = 2.5;
+        timelineCtx.stroke();
+
+        // Gradiente sob a curva
+        timelineCtx.lineTo((timeline.length - 1) * step, h);
+        timelineCtx.lineTo(0, h);
+        const grad = timelineCtx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
+        grad.addColorStop(1, "rgba(56, 189, 248, 0.0)");
+        timelineCtx.fillStyle = grad;
+        timelineCtx.fill();
+    }
+
+    /**
+     * Atualiza toda a Interface
      */
     function updateUI(analysis) {
         if (!analysis) return;
 
-        if (alertBanner) {
-            alertBanner.className = `alert-banner alert-${analysis.severity}`;
-            if (alertTitle) alertTitle.textContent = analysis.title;
-            if (alertDesc) alertDesc.textContent = analysis.desc;
+        // Banner e Estágio
+        if (alertBanner) alertBanner.className = `alert-banner alert-${analysis.severity}`;
+        if (alertStageName) alertStageName.textContent = analysis.stageName;
+        if (alertDesc) alertDesc.textContent = analysis.desc;
+        if (teacherRecommendation) teacherRecommendation.textContent = analysis.recommendation;
 
-            if (alertIcon) {
-                if (analysis.severity === "critical") alertIcon.textContent = "🔴";
-                else if (analysis.severity === "warning") alertIcon.textContent = "🟡";
-                else alertIcon.textContent = "🟢";
-            }
+        if (alertIcon) {
+            if (analysis.severity === "critical") alertIcon.textContent = "🔴";
+            else if (analysis.severity === "alert") alertIcon.textContent = "🟠";
+            else if (analysis.severity === "warning") alertIcon.textContent = "🟡";
+            else alertIcon.textContent = "🟢";
         }
 
         // HUD Bars
         const flapPct = (analysis.flapping && analysis.flapping.score) || 0;
-        const sensoryPct = (analysis.sensoryCovering && analysis.sensoryCovering.score) || 0;
+        const sensoryPct = (analysis.auditoryDefense && analysis.auditoryDefense.score) || 0;
         const rockPct = (analysis.rocking && analysis.rocking.score) || 0;
 
         if (hudFlappingBar) {
@@ -340,14 +406,33 @@ document.addEventListener("DOMContentLoaded", () => {
         if (flappingHz && analysis.flapping) flappingHz.textContent = `${analysis.flapping.hz} Hz`;
 
         if (sensoryScore) sensoryScore.textContent = sensoryPct;
-        if (sensoryStatus && analysis.sensoryCovering) sensoryStatus.textContent = analysis.sensoryCovering.status;
+        if (sensoryStatus && analysis.auditoryDefense) sensoryStatus.textContent = analysis.auditoryDefense.type || "Normal";
 
         if (rockingScore) rockingScore.textContent = rockPct;
-        if (rockingStatus && analysis.rocking) rockingStatus.textContent = analysis.rocking.status;
+        if (rockingStatus && analysis.rocking) rockingStatus.textContent = analysis.rocking.axis || "Estável";
+
+        if (gazeScore && analysis.gazeAttention) gazeScore.textContent = analysis.gazeAttention.focusScore;
+        if (gazeStatus && analysis.gazeAttention) gazeStatus.textContent = analysis.gazeAttention.status;
+
+        if (noddingScore && analysis.headNodding) noddingScore.textContent = analysis.headNodding.score;
+        if (noddingStatus && analysis.headNodding) noddingStatus.textContent = analysis.headNodding.detected ? "Ativo" : "Estável";
+
+        if (overallStressScore) overallStressScore.textContent = analysis.stressScore || 0;
+
+        // Atualiza Contadores do Relatório Clínico
+        if (detector) {
+            if (cntFlapping) cntFlapping.textContent = detector.behaviorCounts.hand_flapping;
+            if (cntRocking) cntRocking.textContent = detector.behaviorCounts.body_rocking;
+            if (cntAuditory) cntAuditory.textContent = detector.behaviorCounts.sensory_auditory;
+            if (cntVisual) cntVisual.textContent = detector.behaviorCounts.sensory_visual;
+            if (cntNodding) cntNodding.textContent = detector.behaviorCounts.head_nodding;
+            if (cntFreeze) cntFreeze.textContent = detector.behaviorCounts.shutdown_freeze;
+            if (reportSummaryText) reportSummaryText.textContent = detector.generateReportSummary();
+        }
     }
 
     /**
-     * Envia o evento para a API do Servidor
+     * Envia evento para a API
      */
     async function logEventToBackend(payload) {
         addEventToDOM(payload);
@@ -357,9 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-        } catch (e) {
-            // Falha silenciosa
-        }
+        } catch (e) {}
     }
 
     function addEventToDOM(event) {
@@ -373,19 +456,31 @@ document.addEventListener("DOMContentLoaded", () => {
         item.innerHTML = `
             <div>
                 <strong>${event.label}</strong>
-                <div style="color: #94a3b8; font-size: 10px;">Confiança: ${(event.confidence * 100).toFixed(0)}%</div>
+                <div style="color: #94a3b8; font-size: 10px;">${event.recommendation || ""}</div>
             </div>
-            <span style="font-family: monospace; color: #38bdf8;">${time}</span>
+            <span style="font-family: monospace; color: #38bdf8; font-size: 10px;">${time}</span>
         `;
         eventList.prepend(item);
     }
 
-    // --- Listeners de Ações ---
-    if (btnStartCamera) {
-        btnStartCamera.addEventListener("click", () => {
-            startCamera();
+    // --- Navegação por Abas ---
+    const tabButtons = document.querySelectorAll(".nav-tab");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            tabButtons.forEach(b => b.classList.remove("active"));
+            tabContents.forEach(c => c.classList.remove("active"));
+
+            btn.classList.add("active");
+            const targetId = btn.getAttribute("data-tab");
+            const targetContent = document.getElementById(targetId);
+            if (targetContent) targetContent.classList.add("active");
         });
-    }
+    });
+
+    // --- Listeners de Controles ---
+    if (btnStartCamera) btnStartCamera.addEventListener("click", startCamera);
 
     if (btnFlipCamera) {
         btnFlipCamera.addEventListener("click", () => {
@@ -423,6 +518,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Inicializa carregamento assíncrono dos modelos
+    // Exportar Relatório Clínico
+    if (btnExportReport && detector) {
+        btnExportReport.addEventListener("click", () => {
+            const report = detector.getClinicalReport();
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `relatorio_tea_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert("Relatório clínico exportado com sucesso! Arquivo pronto para envio ao psicólogo.");
+        });
+    }
+
+    // Salvar Configurações
+    if (btnSaveSettings && detector) {
+        btnSaveSettings.addEventListener("click", () => {
+            const name = document.getElementById("cfgStudentName").value || "Aluno";
+            const audSens = parseFloat(document.getElementById("cfgAuditorySens").value) || 1.0;
+            const motSens = parseFloat(document.getElementById("cfgMotorSens").value) || 1.0;
+
+            detector.setProfile({
+                studentName: name,
+                auditorySensitivity: audSens,
+                motorSensitivity: motSens
+            });
+            alert("Perfil do aluno e sensibilidade atualizados com sucesso!");
+        });
+    }
+
     initMediaPipeModels();
 });
