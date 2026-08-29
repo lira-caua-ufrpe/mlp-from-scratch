@@ -41,3 +41,7 @@ desktop.ini
 # Saídas temporárias
 outputs/tmp/
 *.tmp
+
+*.exe
+cloudflared.exe
+tunnel_url.txt
