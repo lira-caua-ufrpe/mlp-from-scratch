@@ -1,6 +1,6 @@
 ﻿/**
  * MediaPipe Camera Pipeline & Real-Time Orchestrator
- * Multimodal: Pose + FaceMesh + Web Audio Decibel Meter + Winnie Dunn Sensory Profiles
+ * Multimodal: Pose + FaceMesh (FACS AUs) + Web Audio Decibel Meter + Winnie Dunn Sensory Profiles
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -35,22 +35,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // HUD Bars
     const hudNoiseBar = document.getElementById("hudNoiseBar");
     const hudNoiseText = document.getElementById("hudNoiseText");
+    const hudAu04Bar = document.getElementById("hudAu04Bar");
     const hudFlappingBar = document.getElementById("hudFlappingBar");
     const hudSensoryBar = document.getElementById("hudSensoryBar");
-    const hudRockingBar = document.getElementById("hudRockingBar");
 
     // Metrics Cards
+    const au04Score = document.getElementById("au04Score");
+    const au04Status = document.getElementById("au04Status");
+    const au24Score = document.getElementById("au24Score");
+    const au24Status = document.getElementById("au24Status");
     const noiseDb = document.getElementById("noiseDb");
     const noiseStatus = document.getElementById("noiseStatus");
     const flappingScore = document.getElementById("flappingScore");
     const flappingHz = document.getElementById("flappingHz");
     const sensoryScore = document.getElementById("sensoryScore");
     const sensoryStatus = document.getElementById("sensoryStatus");
-    const rockingScore = document.getElementById("rockingScore");
-    const rockingStatus = document.getElementById("rockingStatus");
     const gazeScore = document.getElementById("gazeScore");
     const gazeStatus = document.getElementById("gazeStatus");
-    const overallStressScore = document.getElementById("overallStressScore");
     const eventList = document.getElementById("eventList");
 
     // Settings & Profile Elements
@@ -61,11 +62,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileAccommodationsList = document.getElementById("profileAccommodationsList");
 
     // Clinical Report Elements
+    const cntFacial = document.getElementById("cntFacial");
     const cntFlapping = document.getElementById("cntFlapping");
     const cntRocking = document.getElementById("cntRocking");
     const cntAuditory = document.getElementById("cntAuditory");
     const cntVisual = document.getElementById("cntVisual");
-    const cntNodding = document.getElementById("cntNodding");
     const cntFreeze = document.getElementById("cntFreeze");
     const reportSummaryText = document.getElementById("reportSummaryText");
 
@@ -163,9 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /**
-     * Configura o analisador de ruído do microfone (Decibéis)
-     */
     function setupMicrophoneAnalysis(stream) {
         try {
             const audioTracks = stream.getAudioTracks();
@@ -196,9 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return currentDecibels;
     }
 
-    /**
-     * Inicializa os Modelos MediaPipe
-     */
     async function initMediaPipeModels() {
         try {
             if (typeof Pose !== "undefined") {
@@ -241,9 +236,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /**
-     * Inicia Câmera e Microfone
-     */
     async function startCamera() {
         btnStartCamera.disabled = true;
         btnStartCamera.textContent = "⏳ Conectando sensores...";
@@ -308,9 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(processLoop);
     }
 
-    /**
-     * Loop Principal de Processamento
-     */
     async function processLoop() {
         if (!isRunning) return;
 
@@ -360,9 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(processLoop);
     }
 
-    /**
-     * Renderiza o Vídeo e Esqueleto no Canvas
-     */
     function renderCanvas() {
         if (!canvasCtx) return;
         canvasCtx.save();
@@ -388,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // FaceMesh
+        // FaceMesh (FACS)
         if (showFace && latestFaceLandmarks && window.drawConnectors && typeof FACEMESH_TESSELATION !== "undefined") {
             drawConnectors(canvasCtx, latestFaceLandmarks, FACEMESH_TESSELATION, {
                 color: "rgba(255, 255, 255, 0.15)",
@@ -399,9 +385,6 @@ document.addEventListener("DOMContentLoaded", () => {
         canvasCtx.restore();
     }
 
-    /**
-     * Renderiza o Gráfico de Estresse
-     */
     function drawTimelineChart(timeline) {
         if (!timelineCtx || !timeline || timeline.length === 0) return;
 
@@ -451,9 +434,6 @@ document.addEventListener("DOMContentLoaded", () => {
         timelineCtx.fill();
     }
 
-    /**
-     * Atualiza a Interface
-     */
     function updateUI(analysis) {
         if (!analysis) return;
 
@@ -468,6 +448,29 @@ document.addEventListener("DOMContentLoaded", () => {
             else if (analysis.severity === "warning") alertIcon.textContent = "🟡";
             else alertIcon.textContent = "🟢";
         }
+
+        // FACS Telemetria
+        const facs = analysis.facs || {};
+        const au04Val = facs.au04_brow_furrow || 0;
+        const au24Val = facs.au24_lip_tension || 0;
+
+        if (au04Score) au04Score.textContent = au04Val;
+        if (hudAu04Bar) {
+            hudAu04Bar.style.width = `${au04Val}%`;
+            hudAu04Bar.style.backgroundColor = au04Val >= 60 ? "var(--accent-orange)" : "var(--accent-blue)";
+        }
+        if (au04Status) {
+            au04Status.textContent = au04Val >= 60 ? "Franzido (Stress)" : "Relaxado";
+            au04Status.style.color = au04Val >= 60 ? "var(--accent-orange)" : "var(--accent-blue)";
+        }
+
+        if (au24Score) au24Score.textContent = au24Val;
+        if (au24Status) {
+            au24Status.textContent = au24Val >= 55 ? "Comprimido" : "Relaxado";
+        }
+
+        if (gazeScore) gazeScore.textContent = facs.gazeFocusScore || 100;
+        if (gazeStatus) gazeStatus.textContent = facs.gazeStatus || "Frontal";
 
         // HUD Ruído
         const db = analysis.ambientDb || 50;
@@ -487,7 +490,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // HUD Bars
         const flapPct = (analysis.flapping && analysis.flapping.score) || 0;
         const sensoryPct = (analysis.auditoryDefense && analysis.auditoryDefense.score) || 0;
-        const rockPct = (analysis.rocking && analysis.rocking.score) || 0;
 
         if (hudFlappingBar) {
             hudFlappingBar.style.width = `${flapPct}%`;
@@ -497,41 +499,25 @@ document.addEventListener("DOMContentLoaded", () => {
             hudSensoryBar.style.width = `${sensoryPct}%`;
             hudSensoryBar.style.backgroundColor = sensoryPct > 60 ? "var(--accent-red)" : "var(--accent-blue)";
         }
-        if (hudRockingBar) {
-            hudRockingBar.style.width = `${rockPct}%`;
-            hudRockingBar.style.backgroundColor = rockPct > 60 ? "var(--accent-yellow)" : "var(--accent-blue)";
-        }
 
-        // Metrics Grid
         if (flappingScore) flappingScore.textContent = flapPct;
         if (flappingHz && analysis.flapping) flappingHz.textContent = `${analysis.flapping.hz} Hz`;
 
         if (sensoryScore) sensoryScore.textContent = sensoryPct;
         if (sensoryStatus && analysis.auditoryDefense) sensoryStatus.textContent = analysis.auditoryDefense.type || "Normal";
 
-        if (rockingScore) rockingScore.textContent = rockPct;
-        if (rockingStatus && analysis.rocking) rockingStatus.textContent = analysis.rocking.axis || "Estável";
-
-        if (gazeScore && analysis.gazeAttention) gazeScore.textContent = analysis.gazeAttention.focusScore;
-        if (gazeStatus && analysis.gazeAttention) gazeStatus.textContent = analysis.gazeAttention.status;
-
-        if (overallStressScore) overallStressScore.textContent = analysis.stressScore || 0;
-
         // Atualiza Contadores Clínicos
         if (detector) {
+            if (cntFacial) cntFacial.textContent = detector.behaviorCounts.facial_microexpression_tension;
             if (cntFlapping) cntFlapping.textContent = detector.behaviorCounts.hand_flapping;
             if (cntRocking) cntRocking.textContent = detector.behaviorCounts.body_rocking;
             if (cntAuditory) cntAuditory.textContent = detector.behaviorCounts.sensory_auditory;
             if (cntVisual) cntVisual.textContent = detector.behaviorCounts.sensory_visual;
-            if (cntNodding) cntNodding.textContent = detector.behaviorCounts.head_nodding;
             if (cntFreeze) cntFreeze.textContent = detector.behaviorCounts.shutdown_freeze;
             if (reportSummaryText) reportSummaryText.textContent = detector.generateReportSummary();
         }
     }
 
-    /**
-     * Envia evento para a API
-     */
     async function logEventToBackend(payload) {
         addEventToDOM(payload);
         try {

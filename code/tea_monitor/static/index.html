@@ -24,8 +24,8 @@
             <div class="brand">
                 <div class="logo-icon">🧠</div>
                 <div>
-                    <h1>TEA Monitor <span class="badge-pro">Multimodal</span></h1>
-                    <p class="subtitle">Visão Computacional + Acústica Ambiental</p>
+                    <h1>TEA Monitor <span class="badge-pro">FACS + IA</span></h1>
+                    <p class="subtitle">Visão Espaço-Temporal & Microexpressões</p>
                 </div>
             </div>
             <div class="header-status">
@@ -48,7 +48,7 @@
                 <span id="alertIcon" class="alert-icon">🟢</span>
                 <div class="alert-content">
                     <strong id="alertStageName">Estágio 1: Calmo & Regulado</strong>
-                    <span id="alertDesc">Ambiente em 52 dB. Aluno com autorregulação basal.</span>
+                    <span id="alertDesc">Ambiente em 52 dB. Tensão facial basal.</span>
                 </div>
             </div>
 
@@ -74,16 +74,16 @@
                             <span id="hudNoiseText" style="font-size: 10px; font-weight: 700; color: #fff; width: 45px; text-align: right;">50 dB</span>
                         </div>
                         <div class="hud-metric">
+                            <span class="hud-label">😠 FACS AU04 (Cenho)</span>
+                            <div class="progress-bar"><div id="hudAu04Bar" class="progress-fill" style="width: 0%"></div></div>
+                        </div>
+                        <div class="hud-metric">
                             <span class="hud-label">🖐️ Flapping</span>
                             <div class="progress-bar"><div id="hudFlappingBar" class="progress-fill" style="width: 0%"></div></div>
                         </div>
                         <div class="hud-metric">
                             <span class="hud-label">🎧 Defesa Auditiva</span>
                             <div class="progress-bar"><div id="hudSensoryBar" class="progress-fill" style="width: 0%"></div></div>
-                        </div>
-                        <div class="hud-metric">
-                            <span class="hud-label">🔄 Balanço Tronco</span>
-                            <div class="progress-bar"><div id="hudRockingBar" class="progress-fill" style="width: 0%"></div></div>
                         </div>
                     </div>
 
@@ -92,9 +92,9 @@
                         <div class="start-card">
                             <div class="start-icon">📹</div>
                             <h3>Iniciar Monitoramento</h3>
-                            <p>Processamento local de IA com estimativa de pose, face e nível de ruído em decibéis.</p>
+                            <p>Visão computacional, malha facial FACS, esqueleto 3D e nível de decibéis.</p>
                             <button id="btnStartCamera" class="btn btn-primary btn-large">
-                                ▶️ Iniciar Câmera & Microfone
+                                ▶️ Iniciar Câmera & Sensores
                             </button>
                         </div>
                     </div>
@@ -117,14 +117,32 @@
                 </div>
             </main>
 
-            <!-- Grid de Métricas Biomecânicas e Acústicas -->
+            <!-- Grid de Métricas Biomecânicas, Faciais e Acústicas -->
             <section class="dashboard-section">
                 <div class="section-header">
-                    <h2>📊 Telemetria Multimodal</h2>
+                    <h2>📊 Telemetria Multimodal & FACS</h2>
                     <span class="fps-counter">FPS: <span id="fpsValue">0</span></span>
                 </div>
 
                 <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>FACS AU04 (Cenho)</span>
+                            <span id="au04Status" class="metric-badge">Normal</span>
+                        </div>
+                        <div class="metric-value"><span id="au04Score">0</span>%</div>
+                        <small>Franzir sobrancelha/frustração</small>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span>FACS AU24 (Lábios)</span>
+                            <span id="au24Status" class="metric-badge">Relaxado</span>
+                        </div>
+                        <div class="metric-value"><span id="au24Score">0</span>%</div>
+                        <small>Tensão mandibular/labial</small>
+                    </div>
+
                     <div class="metric-card">
                         <div class="metric-header">
                             <span>Ruído da Sala</span>
@@ -154,29 +172,11 @@
 
                     <div class="metric-card">
                         <div class="metric-header">
-                            <span>Balanço de Tronco</span>
-                            <span id="rockingStatus" class="metric-badge">Estável</span>
-                        </div>
-                        <div class="metric-value"><span id="rockingScore">0</span>%</div>
-                        <small>Oscilação rítmica corporal</small>
-                    </div>
-
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>Atenção Visual</span>
+                            <span>Atenção & Olhar</span>
                             <span id="gazeStatus" class="metric-badge">Frontal</span>
                         </div>
                         <div class="metric-value"><span id="gazeScore">100</span>%</div>
                         <small>Direcionamento do olhar/face</small>
-                    </div>
-
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>Índice Geral Estresse</span>
-                            <span class="metric-badge">Geral</span>
-                        </div>
-                        <div class="metric-value" style="color: var(--accent-orange);"><span id="overallStressScore">0</span>%</div>
-                        <small>Fusão visão + som</small>
                     </div>
                 </div>
             </section>
@@ -185,8 +185,8 @@
         <!-- ABA 2: LINHA DO TEMPO & GRÁFICO CONTÍNUO -->
         <div id="tab-timeline" class="tab-content">
             <div class="card-timeline">
-                <h3>📈 Curva de Nível de Estresse & Ruído (Últimos 60s)</h3>
-                <p class="card-desc">Linha azul: Estresse corporal. Linha tracejada vermelha: Limiar crítico.</p>
+                <h3>📈 Curva de Nível de Estresse & FACS (Últimos 60s)</h3>
+                <p class="card-desc">Linha azul: Estresse corporal e facial. Linha tracejada vermelha: Limiar crítico.</p>
                 <div class="chart-wrapper">
                     <canvas id="timelineChart" width="500" height="200"></canvas>
                 </div>
@@ -223,6 +223,10 @@
 
                 <div class="behavior-counters-grid">
                     <div class="counter-item">
+                        <span class="counter-num" id="cntFacial">0</span>
+                        <span class="counter-lbl">Tensão Facial (FACS)</span>
+                    </div>
+                    <div class="counter-item">
                         <span class="counter-num" id="cntFlapping">0</span>
                         <span class="counter-lbl">Flapping</span>
                     </div>
@@ -239,10 +243,6 @@
                         <span class="counter-lbl">Defesa Visual</span>
                     </div>
                     <div class="counter-item">
-                        <span class="counter-num" id="cntNodding">0</span>
-                        <span class="counter-lbl">Head Nodding</span>
-                    </div>
-                    <div class="counter-item">
                         <span class="counter-num" id="cntFreeze">0</span>
                         <span class="counter-lbl">Shutdown</span>
                     </div>
@@ -252,7 +252,7 @@
                     <h4>📋 Modelo ABC de Análise Comportamental</h4>
                     <ul>
                         <li><strong>A (Antecedente):</strong> Nível de ruído em dB, transição de aula, atividade.</li>
-                        <li><strong>B (Comportamento):</strong> Estereotipia registrada com timestamp e frequência (Hz).</li>
+                        <li><strong>B (Comportamento):</strong> Estereotipia ou microexpressão FACS registrada com timestamp.</li>
                         <li><strong>C (Consequência):</strong> Ação pedagógica recomendada e resposta do aluno.</li>
                     </ul>
                 </div>
