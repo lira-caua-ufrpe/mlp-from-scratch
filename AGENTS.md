@@ -4,6 +4,7 @@
 <!-- norms:start -->
 - **SISTEMA DE ARQUIVOS É A FONTE DA VERDADE**: Nada vive apenas na memória do chat ou em configs voláteis. Se existe e importa, é um arquivo versionado.
 - **STORAGE AGNÓSTICO DE HARNESS**: O workspace é o dono do seu estado, nunca o harness. Antigravity (principal) e OpenCode (backup) operam sobre os mesmos arquivos.
+- **DISCIPLINA DE HANDOFF**: Ao finalizar uma sessão ou marco de desenvolvimento, atualize o `HANDOFF.md` com o resumo do que foi feito e os próximos passos para que a próxima sessão recomece sem perda de contexto.
 - **SEGREDOS FORA DO GIT**: Senhas, tokens, chaves de API e credenciais ficam em `.env` ou `segredos.env` (sempre no `.gitignore`).
 - **NÃO ASSUMA, PERGUNTE**: Em caso de ambiguidade sobre o desenho experimental, requisitos ou estrutura do artigo, entreviste o usuário.
 - **EDITAR > CRIAR**: Prefira refatorar, modularizar e aprimorar arquivos existentes a criar novos arquivos dispersos.
@@ -22,7 +23,8 @@
 
 ## 🗺️ Mapa de Roteamento de Contexto
 Antes de modificar qualquer arquivo, consulte o `CONTEXT.md` do diretório correspondente:
-- Raiz: [CONTEXT.md](CONTEXT.md)
-- Códigos e Modelos: [code/CONTEXT.md](code/CONTEXT.md)
-- Artigo e Pesquisa: [papers/CONTEXT.md](papers/CONTEXT.md)
-- Ferramentas e Harness: [core/CONTEXT.md](core/CONTEXT.md)
+- Passagem de Bastão / Estado da Sessão: [`HANDOFF.md`](HANDOFF.md)
+- Raiz: [`CONTEXT.md`](CONTEXT.md)
+- Códigos e Modelos: [`code/CONTEXT.md`](code/CONTEXT.md)
+- Artigo e Pesquisa: [`papers/CONTEXT.md`](papers/CONTEXT.md)
+- Ferramentas e Harness: [`core/CONTEXT.md`](core/CONTEXT.md)
